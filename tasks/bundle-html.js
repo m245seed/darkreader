@@ -7,6 +7,13 @@ import {writeFile} from './utils.js';
 
 /** @typedef {import('./types').HTMLEntry} HTMLEntry */
 
+/**
+ * Generates an HTML string for an entry.
+ * @param {string} platform
+ * @param {string} title
+ * @param {boolean} hasLoader
+ * @param {boolean} hasStyleSheet
+ */
 function html(platform, title, hasLoader, hasStyleSheet) {
     return [
         '<!DOCTYPE html>',
@@ -14,7 +21,7 @@ function html(platform, title, hasLoader, hasStyleSheet) {
         '    <head>',
         '        <meta charset="utf-8" />',
         `        <title>${title}</title>`,
-        hasStyleSheet ? [
+        ...(hasStyleSheet ? [
             '        <meta name="theme-color" content="#0B2228" />',
             '        <meta name="viewport" content="width=device-width, initial-scale=1" />',
             '        <link rel="stylesheet" type="text/css" href="style.css" />',
@@ -22,11 +29,11 @@ function html(platform, title, hasLoader, hasStyleSheet) {
             '            rel="shortcut icon"',
             '            href="../assets/images/darkreader-icon-256x256.png"',
             '        />',
-        ] : null,
+        ] : []),
         '        <script src="index.js" defer></script>',
         '    </head>',
         '',
-        hasLoader ? [
+        ...(hasLoader ? [
             '    <body>',
             '        <div class="loader">',
             '            <label class="loader__message">Loading, please wait</label>',
@@ -34,15 +41,23 @@ function html(platform, title, hasLoader, hasStyleSheet) {
             '    </body>',
         ] : [
             '    <body></body>',
-        ],
+        ]),
         '</html>',
         '',
-    ].filter((s) => s !== null).flat().join('\r\n');
+    ].join('\r\n');
 }
 
 /** @type {HTMLEntry[]} */
 const htmlEntries = [
     {
+        reloadType: reload.FULL,
+        title: 'Dark Reader background',
+        hasLoader: false,
+        path: 'background/index.html',
+        hasStyleSheet: false,
+    },
+    {
+        platforms: [PLATFORM.CHROMIUM_MV3],
         title: 'Dark Reader settings',
         path: 'ui/popup/index.html',
         hasLoader: true,
@@ -76,6 +91,11 @@ const htmlEntries = [
     },
 ];
 
+/**
+ * Writes an HTML entry to the file system.
+ * @param {HTMLEntry} entry
+ * @param {{debug: boolean, platform: string}} options
+ */
 async function writeEntry({path, title, hasLoader, hasStyleSheet}, {debug, platform}) {
     const destDir = getDestDir({debug, platform});
     const d = `${destDir}/${path}`;
@@ -83,13 +103,16 @@ async function writeEntry({path, title, hasLoader, hasStyleSheet}, {debug, platf
 }
 
 /**
+ * Creates the bundle-html task.
  * @param {HTMLEntry[]} htmlEntries
  * @returns {ReturnType<typeof createTask>}
  */
 export function createBundleHTMLTask(htmlEntries) {
     const bundleHTML = async ({platforms, debug}) => {
         const promises = [];
-        const enabledPlatforms = Object.values(PLATFORM).filter((platform) => platform !== PLATFORM.API && platforms[platform]);
+        const enabledPlatforms = Object.values(PLATFORM).filter(
+            (platform) => platform !== PLATFORM.API && platforms[platform]
+        );
         for (const entry of htmlEntries) {
             if (entry.platforms && !entry.platforms.some((platform) => platforms[platform])) {
                 continue;
