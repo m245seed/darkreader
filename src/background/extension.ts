@@ -58,7 +58,11 @@ export class Extension {
     private static stateManager: StateManager<ExtensionState> | null = null;
 
     private static readonly ALARM_NAME = 'auto-time-alarm';
+    private static readonly WAKE_ALARM_NAME = 'wake-detector';
     private static readonly LOCAL_STORAGE_KEY = 'Extension-state';
+    private static readonly WAKE_CHECK_INTERVAL = getDuration({minutes: 1});
+    private static readonly WAKE_CHECK_INTERVAL_ERROR = getDuration({seconds: 10});
+    private static lastWakeCheck = 0;
 
     // Store system color theme
     private static readonly SYSTEM_COLOR_LOCAL_STORAGE_KEY = 'system-color-state';
@@ -139,6 +143,17 @@ export class Extension {
         }
     };
 
+    private static wakeAlarmListener = (alarm: chrome.alarms.Alarm): void => {
+        if (alarm.name === Extension.WAKE_ALARM_NAME) {
+            const now = Date.now();
+            if (now - Extension.lastWakeCheck > Extension.WAKE_CHECK_INTERVAL + Extension.WAKE_CHECK_INTERVAL_ERROR) {
+                Extension.handleAutomationCheck();
+            }
+            Extension.lastWakeCheck = now;
+            chrome.alarms.create(Extension.WAKE_ALARM_NAME, {delayInMinutes: Extension.WAKE_CHECK_INTERVAL / (60 * 1000)});
+        }
+    };
+
     private static isExtensionSwitchedOn() {
         return (
             Extension.autoState === 'turn-on' ||
@@ -207,23 +222,17 @@ export class Extension {
         }
     }
 
-    private static wakeInterval: number = -1;
-
     private static runWakeDetector() {
-        const WAKE_CHECK_INTERVAL = getDuration({minutes: 1});
-        const WAKE_CHECK_INTERVAL_ERROR = getDuration({seconds: 10});
-        if (this.wakeInterval >= 0) {
-            clearInterval(this.wakeInterval);
-        }
+        chrome.alarms.onAlarm.removeListener(Extension.wakeAlarmListener);
+        chrome.alarms.onAlarm.addListener(Extension.wakeAlarmListener);
+        chrome.alarms.clear(Extension.WAKE_ALARM_NAME);
+        Extension.lastWakeCheck = Date.now();
+        chrome.alarms.create(Extension.WAKE_ALARM_NAME, {delayInMinutes: Extension.WAKE_CHECK_INTERVAL / (60 * 1000)});
+    }
 
-        let lastRun = Date.now();
-        this.wakeInterval = setInterval(() => {
-            const now = Date.now();
-            if (now - lastRun > WAKE_CHECK_INTERVAL + WAKE_CHECK_INTERVAL_ERROR) {
-                Extension.handleAutomationCheck();
-            }
-            lastRun = now;
-        }, WAKE_CHECK_INTERVAL);
+    private static stopWakeDetector() {
+        chrome.alarms.onAlarm.removeListener(Extension.wakeAlarmListener);
+        chrome.alarms.clear(Extension.WAKE_ALARM_NAME);
     }
 
     static async start(): Promise<void> {
@@ -248,7 +257,11 @@ export class Extension {
             await ConfigManager.load({local: false});
         }
         Extension.updateAutoState();
-        Extension.runWakeDetector();
+        if (UserStorage.settings.automation.enabled && UserStorage.settings.automation.mode !== AutomationMode.NONE) {
+            Extension.runWakeDetector();
+        } else {
+            Extension.stopWakeDetector();
+        }
         Extension.onAppToggle();
         logInfo('loaded', UserStorage.settings);
 
@@ -522,6 +535,11 @@ export class Extension {
         ) {
             Extension.updateAutoState();
             Extension.onAppToggle();
+            if (UserStorage.settings.automation.enabled && UserStorage.settings.automation.mode !== AutomationMode.NONE) {
+                Extension.runWakeDetector();
+            } else {
+                Extension.stopWakeDetector();
+            }
         }
         if (prev.syncSettings !== UserStorage.settings.syncSettings) {
             const promise = UserStorage.saveSyncSetting(UserStorage.settings.syncSettings);
