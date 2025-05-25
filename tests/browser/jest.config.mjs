@@ -14,8 +14,8 @@ const config = {
     transform: {'^.+\\.ts(x?)$': ['ts-jest', {tsconfig: '<rootDir>/tests/browser/tsconfig.json'}]},
     globals: {
         __DEBUG__: false,
-        __CHROMIUM_MV2__: true,
-        __CHROMIUM_MV3__: false,
+        __CHROMIUM_MV2__: false,
+        __CHROMIUM_MV3__: true,
         __FIREFOX_MV2__: false,
         __THUNDERBIRD__: false,
         __TEST__: true,

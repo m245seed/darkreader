@@ -16,7 +16,7 @@ const config = {
     globals: {
         __FIREFOX_MV2__: false,
         __CHROMIUM_MV2__: false,
-        __CHROMIUM_MV3__: false,
+        __CHROMIUM_MV3__: true,
         __THUNDERBIRD__: false,
         __DEBUG__: false,
         __PLUS__: false,

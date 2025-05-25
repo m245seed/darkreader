@@ -34,7 +34,6 @@ export function configureKarma(config, env) {
         ],
         plugins: [
             'karma-chrome-launcher',
-            'karma-firefox-launcher',
             process.platform === 'darwin' ? 'karma-safari-launcher' : null,
             'karma-rollup-preprocessor',
             'karma-jasmine',
@@ -55,7 +54,7 @@ export function configureKarma(config, env) {
                     __DEBUG__: false,
                     __FIREFOX_MV2__: false,
                     __CHROMIUM_MV2__: false,
-                    __CHROMIUM_MV3__: false,
+                    __CHROMIUM_MV3__: true,
                     __THUNDERBIRD__: false,
                     __PORT__: '-1',
                     __TEST__: true,
@@ -75,8 +74,8 @@ export function configureKarma(config, env) {
         logLevel: config.LOG_INFO,
         autoWatch: true,
         browsers: headless
-            ? ['ChromeHeadless', 'FirefoxHeadless']
-            : ['Chrome', 'Firefox', process.platform === 'darwin' ? 'Safari' : null].filter(Boolean),
+            ? ['ChromeHeadless']
+            : ['Chrome', process.platform === 'darwin' ? 'Safari' : null].filter(Boolean),
         singleRun: true,
         concurrency: 1,
     };
@@ -92,10 +91,9 @@ export function configureKarma(config, env) {
         options.customLaunchers = {};
         options.browsers = [];
 
-        // CHROME_TEST and FIREFOX_TEST are used in CI
+        // CHROME_TEST is used in CI
         const chrome = env.CHROME_TEST;
-        const firefox = env.FIREFOX_TEST;
-        const all = !chrome && !firefox;
+        const all = !chrome;
         // Chrome
         if (chrome || all) {
             options.customLaunchers['CIChromeHeadless'] = {
@@ -105,13 +103,6 @@ export function configureKarma(config, env) {
             options.browsers.push('CIChromeHeadless');
         }
 
-        // Firefox
-        if (firefox || all) {
-            options.customLaunchers['CIFirefoxHeadless'] = {
-                base: 'FirefoxHeadless',
-            };
-            options.browsers.push('CIFirefoxHeadless');
-        }
 
         options.autoWatch = false;
         options.singleRun = true;
