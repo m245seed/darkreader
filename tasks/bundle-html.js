@@ -7,7 +7,7 @@ import {writeFile} from './utils.js';
 
 /** @typedef {import('./types').HTMLEntry} HTMLEntry */
 
-function html(platform, title, hasLoader, hasStyleSheet, compatibility) {
+function html(platform, title, hasLoader, hasStyleSheet) {
     return [
         '<!DOCTYPE html>',
         '<html>',
@@ -24,7 +24,6 @@ function html(platform, title, hasLoader, hasStyleSheet, compatibility) {
             '        />',
         ] : null,
         '        <script src="index.js" defer></script>',
-        (compatibility && platform === PLATFORM.CHROMIUM_MV2) ? '        <script src="compatibility.js" defer></script>' : null,
         '    </head>',
         '',
         hasLoader ? [
@@ -44,20 +43,10 @@ function html(platform, title, hasLoader, hasStyleSheet, compatibility) {
 /** @type {HTMLEntry[]} */
 const htmlEntries = [
     {
-        title: 'Dark Reader background',
-        path: 'background/index.html',
-        hasLoader: false,
-        hasStyleSheet: false,
-        hasCompatibilityCheck: false,
-        reloadType: reload.FULL,
-        platforms: [PLATFORM.CHROMIUM_MV2, PLATFORM.CHROMIUM_MV2_PLUS, PLATFORM.FIREFOX_MV2, PLATFORM.THUNDERBIRD],
-    },
-    {
         title: 'Dark Reader settings',
         path: 'ui/popup/index.html',
         hasLoader: true,
         hasStyleSheet: true,
-        hasCompatibilityCheck: true,
         reloadType: reload.UI,
     },
     {
@@ -65,7 +54,6 @@ const htmlEntries = [
         path: 'ui/options/index.html',
         hasLoader: false,
         hasStyleSheet: true,
-        hasCompatibilityCheck: false,
         reloadType: reload.UI,
     },
     {
@@ -73,7 +61,6 @@ const htmlEntries = [
         path: 'ui/devtools/index.html',
         hasLoader: false,
         hasStyleSheet: true,
-        hasCompatibilityCheck: false,
         reloadType: reload.UI,
     },
     {
@@ -81,15 +68,14 @@ const htmlEntries = [
         path: 'ui/stylesheet-editor/index.html',
         hasLoader: false,
         hasStyleSheet: true,
-        hasCompatibilityCheck: false,
         reloadType: reload.UI,
     },
 ];
 
-async function writeEntry({path, title, hasLoader, hasStyleSheet, hasCompatibilityCheck}, {debug, platform}) {
+async function writeEntry({path, title, hasLoader, hasStyleSheet}, {debug, platform}) {
     const destDir = getDestDir({debug, platform});
     const d = `${destDir}/${path}`;
-    await writeFile(d, html(platform, title, hasLoader, hasStyleSheet, hasCompatibilityCheck));
+    await writeFile(d, html(platform, title, hasLoader, hasStyleSheet));
 }
 
 /**
