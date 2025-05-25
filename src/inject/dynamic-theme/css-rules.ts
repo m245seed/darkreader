@@ -69,13 +69,13 @@ export function iterateCSSDeclarations(style: CSSStyleDeclaration, iterate: (pro
     // Bigger sites like gmail.com and google.com will love this optimization.
     // As a side-effect, styles with a lot of `var(` will notice a maximum slowdown of ~50ms.
     // Against the bigger sites that saves around ~150ms+ it's a good win.
-    const cssText = style.cssText;
+    const { cssText } = style;
     if (cssText.includes('var(')) {
         if (isSafari) {
             // Safari doesn't show shorthand properties' values
             shorthandVarDepPropRegexps!.forEach(([prop, regexp]) => {
-                const match = cssText.match(regexp);
-                if (match && match[1]) {
+                const match = regexp.exec(cssText);
+                if (match?.[1]) {
                     const val = match[1].trim();
                     iterate(prop, val);
                 }
@@ -83,7 +83,7 @@ export function iterateCSSDeclarations(style: CSSStyleDeclaration, iterate: (pro
         } else {
             shorthandVarDependantProperties.forEach((prop) => {
                 const val = style.getPropertyValue(prop);
-                if (val && val.includes('var(')) {
+                if (val?.includes('var(')) {
                     iterate(prop, val);
                 }
             });
@@ -123,8 +123,8 @@ function handleEmptyShorthand(shorthand: string, style: CSSStyleDeclaration, ite
     }
 }
 
-export const cssURLRegex = /url\((('.*?')|(".*?")|([^\)]*?))\)/g;
-export const cssImportRegex = /@import\s*(url\()?(('.+?')|(".+?")|([^\)]*?))\)? ?(screen)?;?/gi;
+export const cssURLRegex = /url\((('.*?')|(".*?")|([^)]*?))\)/g;
+export const cssImportRegex = /@import\s*(url\()?(('.+?')|(".+?")|([^)]*?))\)? ?(screen)?;?/gi;
 
 // First try to extract the CSS URL value. Then do some post fixes, like unescaping
 // backslashes in the URL. (Chromium don't handle this natively). Remove all newlines
@@ -134,9 +134,9 @@ export function getCSSURLValue(cssURL: string): string {
     return cssURL.trim().replace(/[\n\r\\]+/g, '').replace(/^url\((.*)\)$/, '$1').trim().replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1').replace(/(?:\\(.))/g, '$1');
 }
 
-export function getCSSBaseBath(url: string): string {
+export function getCSSBasePath(url: string): string {
     const cssURL = parseURL(url);
-    return `${cssURL.origin}${cssURL.pathname.replace(/\?.*$/, '').replace(/(\/)([^\/]+)$/i, '$1')}`;
+    return `${cssURL.origin}${cssURL.pathname.replace(/\?.*$/, '').replace(/(?:[^/]+)$/i, '$1')}`;
 }
 
 export function replaceCSSRelativeURLsWithAbsolute($css: string, cssBasePath: string): string {
@@ -146,7 +146,7 @@ export function replaceCSSRelativeURLsWithAbsolute($css: string, cssBasePath: st
             const absoluteURL = getAbsoluteURL(cssBasePath, url);
             const escapedURL = absoluteURL.replaceAll('\'', '\\\'');
             return `url('${escapedURL}')`;
-        } catch (err) {
+        } catch {
             logWarn('Not able to replace relative URL with Absolute URL, skipping');
             return match;
         }

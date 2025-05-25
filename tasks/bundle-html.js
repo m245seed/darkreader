@@ -43,21 +43,11 @@ function html(platform, title, hasLoader, hasStyleSheet) {
 /** @type {HTMLEntry[]} */
 const htmlEntries = [
     {
-<<<<<<< ji782z-codex/remove-firefox-specific-paths-and-tooling
-        title: 'Dark Reader background',
-        path: 'background/index.html',
-        hasLoader: false,
-        hasStyleSheet: false,
-        reloadType: reload.FULL,
-        platforms: [PLATFORM.CHROMIUM_MV3],
-    },
-    {
-=======
->>>>>>> main
         title: 'Dark Reader settings',
         path: 'ui/popup/index.html',
         hasLoader: true,
         hasStyleSheet: true,
+        hasCompatibilityCheck: false,
         reloadType: reload.UI,
     },
     {
@@ -65,6 +55,7 @@ const htmlEntries = [
         path: 'ui/options/index.html',
         hasLoader: false,
         hasStyleSheet: true,
+        hasCompatibilityCheck: false,
         reloadType: reload.UI,
     },
     {
@@ -72,6 +63,7 @@ const htmlEntries = [
         path: 'ui/devtools/index.html',
         hasLoader: false,
         hasStyleSheet: true,
+        hasCompatibilityCheck: false,
         reloadType: reload.UI,
     },
     {
@@ -79,6 +71,7 @@ const htmlEntries = [
         path: 'ui/stylesheet-editor/index.html',
         hasLoader: false,
         hasStyleSheet: true,
+        hasCompatibilityCheck: false,
         reloadType: reload.UI,
     },
 ];

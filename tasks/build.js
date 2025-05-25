@@ -34,15 +34,14 @@ const buildTask = [
     zip,
 ];
 
-
-async function build({platforms, debug, watch, log: logging, test}) {
+async function build({platforms, debug, watch, log: logging, test, version}) {
     log.ok('BUILD');
     platforms = {
         ...platforms,
         [PLATFORM.API]: false,
     };
     try {
-        await runTasks(debug ? standardTask : buildTask, {platforms, debug, watch, log: logging, test});
+        await runTasks(debug ? standardTask : buildTask, {platforms, debug, watch, log: logging, test, version});
         if (watch) {
             standardTask.forEach((task) => task.watch(platforms));
             reload.reload({type: reload.FULL});
@@ -64,7 +63,7 @@ async function api(debug, watch) {
         if (!debug) {
             tasks.push(codeStyle);
         }
-        await runTasks(tasks, {platforms: {[PLATFORM.API]: true}, debug, watch, log: false, test: false});
+        await runTasks(tasks, {platforms: {[PLATFORM.API]: true}, debug, watch, log: false, test: false, version: '1.0.0'});
         if (watch) {
             bundleAPI.watch();
             log.ok('Watching...');
@@ -80,10 +79,10 @@ async function api(debug, watch) {
 async function run({release, debug, platforms, watch, log, test}) {
     const regular = Object.keys(platforms).some((platform) => platform !== PLATFORM.API && platforms[platform]);
     if (release && regular) {
-        await build({platforms, debug: false, watch: false, log: null, test: false});
+        await build({platforms, debug: false, watch: false, log: null, test: false, version: '1.0.0'});
     }
     if (debug && regular) {
-        await build({platforms, debug, watch, log, test});
+        await build({platforms, debug, watch, log, test, version: '1.0.0'});
     }
     if (platforms[PLATFORM.API]) {
         await api(debug, watch);
@@ -108,7 +107,6 @@ function getParams(args) {
     if (allPlatforms) {
         Object.keys(platforms).forEach((platform) => platforms[platform] = true);
     }
-
 
     const release = args.includes('--release');
     const debug = args.includes('--debug');

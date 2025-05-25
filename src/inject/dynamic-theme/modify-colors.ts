@@ -6,9 +6,7 @@ import type {RGBA, HSLA} from '../../utils/color';
 import {parseToHSLWithCache, rgbToHSL, hslToRGB, rgbToString, rgbToHexString} from '../../utils/color';
 import {scale} from '../../utils/math';
 
-interface ColorFunction {
-    (hsl: HSLA): HSLA;
-}
+type ColorFunction = (hsl: HSLA) => HSLA;
 
 declare const __PLUS__: boolean;
 

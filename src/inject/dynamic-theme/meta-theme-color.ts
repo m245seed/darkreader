@@ -10,7 +10,7 @@ let srcMetaThemeColor: string | null = null;
 let observer: MutationObserver | null = null;
 
 function changeMetaThemeColor(meta: HTMLMetaElement, theme: Theme) {
-    srcMetaThemeColor = srcMetaThemeColor || meta.content;
+    srcMetaThemeColor = srcMetaThemeColor ?? meta.content;
     const color = parseColorWithCache(srcMetaThemeColor);
     if (!color) {
         logWarn('Invalid meta color', color);
@@ -28,15 +28,14 @@ export function changeMetaThemeColorWhenAvailable(theme: Theme): void {
             observer.disconnect();
         }
         observer = new MutationObserver((mutations) => {
-            loop: for (let i = 0; i < mutations.length; i++) {
-                const {addedNodes} = mutations[i];
-                for (let j = 0; j < addedNodes.length; j++) {
-                    const node = addedNodes[j];
+            for (const mutation of mutations) {
+                const {addedNodes} = mutation;
+                for (const node of addedNodes) {
                     if (node instanceof HTMLMetaElement && node.name === metaThemeColorName) {
                         observer!.disconnect();
                         observer = null;
                         changeMetaThemeColor(node, theme);
-                        break loop;
+                        return;
                     }
                 }
             }

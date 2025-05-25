@@ -87,7 +87,8 @@ export default tslint.config({
 
         'prefer-exponentiation-operator': 'error',
         'prefer-regex-literals': 'error',
-        semi: 'error',
+        semi: 'off',
+        '@stylistic/semi': 'off',
 
         'space-before-function-paren': ['error', {
             anonymous: 'always',
@@ -138,7 +139,6 @@ export default tslint.config({
         '@typescript-eslint/no-redeclare': 'error',
         '@typescript-eslint/no-unused-expressions': 'off',
         '@typescript-eslint/no-unused-vars': ['error', {caughtErrors: 'none', argsIgnorePattern: '^_'}],
-        '@stylistic/semi': ['error', 'always'],
 
         '@stylistic/quotes': ['error', 'single', {
             allowTemplateLiterals: true,
@@ -150,11 +150,11 @@ export default tslint.config({
         /*
         'import/no-unresolved': ['error', {
             ignore: [
-                '^generators\/',
-                '^malevic\/',
-                '^plus\/',
-                '^ui\/',
-                '^utils\/',
+                '^generators/',
+                '^malevic/',
+                '^plus/',
+                '^ui/',
+                '^utils/',
             ],
         }],
         */

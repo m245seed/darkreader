@@ -27,18 +27,18 @@ const VAR_TYPE_BORDER_COLOR = 1 << 2;
 const VAR_TYPE_BG_IMG = 1 << 3;
 
 export class VariablesStore {
-    private varTypes = new Map<string, number>();
-    private rulesQueue = new Set<CSSRuleList | CSSRule[]>();
-    private inlineStyleQueue: CSSStyleDeclaration[] = [];
-    private definedVars = new Set<string>();
-    private varRefs = new Map<string, Set<string>>();
-    private unknownColorVars = new Set<string>();
-    private unknownBgVars = new Set<string>();
-    private undefinedVars = new Set<string>();
-    private initialVarTypes = new Map<string, number>();
-    private changedTypeVars = new Set<string>();
-    private typeChangeSubscriptions = new Map<string, Set<() => void>>();
-    private unstableVarValues = new Map<string, string>();
+    private readonly varTypes = new Map<string, number>();
+    private readonly rulesQueue = new Set<CSSRuleList | CSSRule[]>();
+    private readonly inlineStyleQueue: CSSStyleDeclaration[] = [];
+    private readonly definedVars = new Set<string>();
+    private readonly varRefs = new Map<string, Set<string>>();
+    private readonly unknownColorVars = new Set<string>();
+    private readonly unknownBgVars = new Set<string>();
+    private readonly undefinedVars = new Set<string>();
+    private readonly initialVarTypes = new Map<string, number>();
+    private readonly changedTypeVars = new Set<string>();
+    private readonly typeChangeSubscriptions = new Map<string, Set<() => void>>();
+    private readonly unstableVarValues = new Map<string, string>();
     private onRootVariableDefined: () => void;
 
     clear(): void {
@@ -227,17 +227,22 @@ export class VariablesStore {
     }
 
     getModifierForVarDependant(property: string, sourceValue: string): CSSValueModifier | null {
-        const isConstructedColor = sourceValue.match(/^\s*(rgb|hsl)a?\(/);
-        const isSimpleConstructedColor = sourceValue.match(/^rgba?\(var\(--[\-_A-Za-z0-9]+\)(\s*,?\/?\s*0?\.\d+)?\)$/);
+        const isConstructedColor = /^\s*(rgb|hsl)a?\(/.exec(sourceValue);
+        const isSimpleConstructedColor = /^rgba?\(var\(--[-_A-Za-z0-9]+\)(\s*,?\/?\s*0?\.\d+)?\)$/.exec(sourceValue);
         if (isConstructedColor && !isSimpleConstructedColor) {
             const isBg = property.startsWith('background');
             const isText = isTextColorProperty(property);
             return (theme) => {
                 let value = insertVarValues(sourceValue, this.unstableVarValues);
-                if (!value) {
-                    value = isBg ? '#ffffff' : '#000000';
+                value ??= isBg ? '#ffffff' : '#000000';
+                let modifier;
+                if (isBg) {
+                    modifier = tryModifyBgColor;
+                } else if (isText) {
+                    modifier = tryModifyTextColor;
+                } else {
+                    modifier = tryModifyBorderColor;
                 }
-                const modifier = isBg ? tryModifyBgColor : isText ? tryModifyTextColor : tryModifyBorderColor;
                 return modifier(value, theme);
             };
         }
@@ -285,17 +290,19 @@ export class VariablesStore {
                     if (property === 'box-shadow') {
                         const shadowModifier = getShadowModifierWithInfo(variableReplaced)!;
                         const modifiedShadow = shadowModifier(theme);
-                        if (modifiedShadow.unparsableMatchesLength !== modifiedShadow.matchesLength) {
-                            return modifiedShadow.result;
+                        if (typeof modifiedShadow === 'object' && 'unparsableMatchesLength' in modifiedShadow && 'matchesLength' in modifiedShadow && 'result' in modifiedShadow) {
+                            if (modifiedShadow.unparsableMatchesLength !== modifiedShadow.matchesLength) {
+                                return modifiedShadow.result;
+                            }
                         }
                     }
                     return variableReplaced;
                 };
 
-                const modified = modify();
+                const modified = modify() as string;
                 if (unknownVars.size > 0) {
                     // web.dev and voice.google.com issue where the variable is never defined, but the fallback is.
-                    // TODO: Return a fallback value along with a way to subscribe for a change.
+                    // Return a fallback value along with a way to subscribe for a change.
                     const isFallbackResolved = modified.match(/^var\(.*?, (var\(--darkreader-bg--.*\))|(#[0-9A-Fa-f]+)|([a-z]+)|(rgba?\(.+\))|(hsla?\(.+\))\)$/);
                     if (isFallbackResolved) {
                         return modified;
@@ -304,7 +311,7 @@ export class VariablesStore {
                         for (const unknownVar of unknownVars.values()) {
                             const callback = () => {
                                 this.unsubscribeFromVariableTypeChanges(unknownVar, callback);
-                                const newValue = modify();
+                                const newValue = modify() as string;
                                 resolve(newValue);
                             };
                             this.subscribeForVarTypeChange(unknownVar, callback);
@@ -402,8 +409,8 @@ export class VariablesStore {
         // Check if the value is either a raw value or a value that can be parsed
         // e.g. rgb, hsl.
         const isColor = Boolean(
-            value.match(rawRGBSpaceRegex) ||
-            value.match(rawRGBCommaRegex) ||
+            rawRGBSpaceRegex.exec(value) ||
+            rawRGBCommaRegex.exec(value) ||
             parseColorWithCache(value)
         );
         if (isColor) {
@@ -418,8 +425,8 @@ export class VariablesStore {
     }
 
     private resolveVariableType(varName: string, typeNum: number) {
-        const initialType = this.initialVarTypes.get(varName) || 0;
-        const currentType = this.varTypes.get(varName) || 0;
+        const initialType = this.initialVarTypes.get(varName) ?? 0;
+        const currentType = this.varTypes.get(varName) ?? 0;
         const newType = currentType | typeNum;
         this.varTypes.set(varName, newType);
         if (newType !== initialType || this.undefinedVars.has(varName)) {
@@ -704,7 +711,7 @@ const rawRGBSpaceRegex = /^(\d{1,3})\s+(\d{1,3})\s+(\d{1,3})$/;
 const rawRGBCommaRegex = /^(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})$/;
 
 function parseRawColorValue(input: string) {
-    const match = input.match(rawRGBSpaceRegex) ?? input.match(rawRGBCommaRegex);
+    const match = rawRGBSpaceRegex.exec(input) ?? rawRGBCommaRegex.exec(input);
     if (match) {
         const color = `rgb(${match[1]}, ${match[2]}, ${match[3]})`;
         return {isRaw: true, color};
