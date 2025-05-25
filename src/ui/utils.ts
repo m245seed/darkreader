@@ -144,6 +144,17 @@ export async function getFontList(): Promise<string[]> {
 
 type ExtensionPage = 'devtools' | 'options' | 'stylesheet-editor';
 
+const extensionPageURLCache = new Map<ExtensionPage, string>();
+
+function getExtensionPageURL(page: ExtensionPage): string {
+    let url = extensionPageURLCache.get(page);
+    if (!url) {
+        url = chrome.runtime.getURL(`/ui/${page}/index.html`);
+        extensionPageURLCache.set(page, url);
+    }
+    return url;
+}
+
 // TODO(Anton): There must be a better way to do this
 // This function ping-pongs a message to possible DevTools popups.
 // This function should have reasonable performance since it sends
@@ -183,7 +194,7 @@ async function getExtensionPageTab(url: string): Promise<chrome.tabs.Tab | null>
 }
 
 export async function openExtensionPage(page: ExtensionPage): Promise<void> {
-    const url = chrome.runtime.getURL(`/ui/${page}/index.html`);
+    const url = getExtensionPageURL(page);
     if (isMobile || page === 'options') {
         const extensionPageTab = await getExtensionPageTab(url);
         if (extensionPageTab !== null) {
