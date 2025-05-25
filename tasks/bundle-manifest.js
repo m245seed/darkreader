@@ -7,8 +7,14 @@ import {readJSON, writeJSON} from './utils.js';
 
 async function patchManifest(platform, debug, watch, test) {
     const manifest = await readJSON(absolutePath('src/manifest.json'));
+<<<<<<< ji782z-codex/remove-firefox-specific-paths-and-tooling
+    const manifestPatch = await readJSON(absolutePath(`src/manifest-${platform.replace('-plus', '')}.json`));
+    const manifestExtras = {};
+    const patched = {...manifest, ...manifestPatch, ...manifestExtras};
+=======
     const manifestPatch = await readJSON(absolutePath('src/manifest-chrome-mv3.json'));
     const patched = {...manifest, ...manifestPatch};
+>>>>>>> main
     if (debug && platform === PLATFORM.CHROMIUM_MV3) {
         patched.name = 'Dark Reader MV3';
     }
@@ -22,7 +28,11 @@ async function patchManifest(platform, debug, watch, test) {
     if (debug && !test && platform === PLATFORM.CHROMIUM_MV3) {
         patched.permissions.push('tabs');
     }
+<<<<<<< ji782z-codex/remove-firefox-specific-paths-and-tooling
+    if (debug && platform === PLATFORM.CHROMIUM_MV3) {
+=======
     if (debug) {
+>>>>>>> main
         patched.version_name = 'Debug';
     }
     // Needed to test settings export and CSS theme export via a download

@@ -75,11 +75,18 @@ const rollupCache = {};
 async function bundleJS(/** @type {JSEntry} */entry, platform, debug, watch, log, test) {
     const {src, dest} = entry;
 
-    const replace = {
-        'chrome.browserAction.setIcon': 'chrome.action.setIcon',
-        'chrome.browserAction.setBadgeBackgroundColor': 'chrome.action.setBadgeBackgroundColor',
-        'chrome.browserAction.setBadgeText': 'chrome.action.setBadgeText',
-    };
+    let replace = {};
+    if (platform === PLATFORM.CHROMIUM_MV3) {
+        replace = {
+            'chrome.browserAction.setIcon': 'chrome.action.setIcon',
+            'chrome.browserAction.setBadgeBackgroundColor': 'chrome.action.setBadgeBackgroundColor',
+            'chrome.browserAction.setBadgeText': 'chrome.action.setBadgeText',
+        };
+    }
+
+    // See comment below
+    // TODO(anton): remove this once Firefox supports tab.eval() via WebDriver BiDi
+    const mustRemoveEval = false;
 
 
     const cacheId = `${entry.src}-${platform}-${debug}-${watch}-${log}-${test}`;
@@ -177,7 +184,14 @@ export function createBundleJSTask(jsEntries) {
 
     /** @type {(changedFiles: string[], watcher: FSWatcher, platforms: any) => Promise<void>} */
     const onChange = async (changedFiles, watcher, initialPlatforms) => {
-        const platforms = initialPlatforms;
+        let platforms = {};
+        const connectedBrowsers = reload.getConnectedBrowsers();
+        if (connectedBrowsers.includes('chrome')) {
+            platforms['chrome-mv3'] = initialPlatforms['chrome-mv3'];
+        }
+        if (connectedBrowsers.length === 0) {
+            platforms = initialPlatforms;
+        }
 
         const entries = jsEntries.filter((entry) => {
             return changedFiles.some((changed) => {

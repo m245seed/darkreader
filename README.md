@@ -1,7 +1,11 @@
 <p align="center"><a href="https://darkreader.org" target="_blank" rel="noreferrer noopener"><img width="250" alt="Dark Reader's mascot" src="https://raw.githubusercontent.com/darkreader/darkreader.github.io/master/images/darkreader-mascot.svg"></a></p>
 <p align="center">Dark Reader <strong>analyzes</strong> web pages and aims to <strong>reduce eyestrain</strong> while browsing the web.</p>
 <br/>
+<<<<<<< ji782z-codex/remove-firefox-specific-paths-and-tooling
+<p align="center"><a rel="noreferrer noopener" href="https://chromewebstore.google.com/detail/dark-reader/eimadpbcbfnmbkopoojfekhnkhdbieeh"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome-141e24.svg?&style=for-the-badge&logo=google-chrome&logoColor=white"></a>  <a rel="noreferrer noopener" href="https://darkreader.org/safari/"><img alt="Apple App Store" src="https://img.shields.io/badge/Safari-141e24.svg?&style=for-the-badge&logo=safari&logoColor=white"></a>  <a rel="noreferrer noopener" href="https://microsoftedge.microsoft.com/addons/detail/dark-reader/ifoakfbpdcdoeenechcleahebpibofpc/"><img alt="Edge Addons" src="https://img.shields.io/badge/Edge-141e24.svg?&style=for-the-badge&logo=microsoft-edge&logoColor=white"></a>
+=======
 <p align="center"><a rel="noreferrer noopener" href="https://chromewebstore.google.com/detail/dark-reader/eimadpbcbfnmbkopoojfekhnkhdbieeh"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome-141e24.svg?&style=for-the-badge&logo=google-chrome&logoColor=white"></a>  <a rel="noreferrer noopener" href="https://addons.mozilla.org/firefox/addon/darkreader/"><img alt="Firefox Add-ons" src="https://img.shields.io/badge/Firefox-141e24.svg?&style=for-the-badge&logo=firefox-browser&logoColor=white"></a>  <a rel="noreferrer noopener" href="https://darkreader.org/safari/"><img alt="Apple App Store" src="https://img.shields.io/badge/Safari-141e24.svg?&style=for-the-badge&logo=safari&logoColor=white"></a>  <a rel="noreferrer noopener" href="https://microsoftedge.microsoft.com/addons/detail/dark-reader/ifoakfbpdcdoeenechcleahebpibofpc/"><img alt="Edge Addons" src="https://img.shields.io/badge/Edge-141e24.svg?&style=for-the-badge&logo=microsoft-edge&logoColor=white"></a>
+>>>>>>> main
 
 <h2 align="center">Dark Reader</h2>
 <br/>
@@ -123,64 +127,6 @@ To force a synchronization of the sites fixes (when the corresponding setting is
 2. Go to `Settings` -> `Advanced` -> `Dev tools`.
 3. For each "Editor" section, click on `Reset changes`, confirm with `OK`, and then click on `Apply`. Afterwards, close the developer tools window and reload the desired page(s).
 
-## Enable Dark Reader on restricted pages on Mozilla Firefox
-
-By default, Dark Reader does not work on some websites due to **security restrictions** enforced by Mozilla.
-
-The following instructions will guide you on how to disable those restrictions.
-
-**Proceed with caution. This exposes you to a security risk if you do not know what you are doing.**
-
-**Be sure that you do not have any suspicious or malicious-looking extension installed before proceeding.**
-
-**These settings will apply to all extensions, and not just Dark Reader.**
-
-Step 1: change Dark Reader's settings.
-
-1. Click on the Dark Reader extension icon.
-2. Click on the `Dev tools` button (in the bottom-right corner).
-3. Go to `Advanced` and click on the `Preview new design` button.
-4. Close the developer tools window and click on the Dark Reader extension icon again.
-5. Go to `Settings` -> `Advanced` and enable the `Enable on restricted pages` setting.
-
-Step 2: change Firefox's settings.
-
-- Type `about:config` in the address bar and press Enter.
-  - A warning page may appear. Click `Accept the Risk and Continue` to proceed.
-- Search for and set `extensions.webextensions.restrictedDomains` to an empty value (if the preference does not exist, create it with `String` as the type).
-- Set `privacy.resistFingerprinting.block_mozAddonManager` to `true` (if the preference does not exist, create it with `Boolean` as the type).
-
-After changing the necessary settings for both Dark Reader and Firefox, reload the desired page(s).
-
-**If you had previously changed any of the following preferences, please reset them to their default values as they are only related to security and are not necessary for Dark Reader to work on restricted websites.**
-To reset them, click on the reset (or delete icon, if present) icon at the most-right corner of the preference line in `about:config`.
-- `extensions.webextensions.addons-restricted-domains@mozilla.com.disabled`
-- `extensions.quarantinedDomains.enabled`
-- `extensions.quarantinedDomains.list`
-
-### Clarification about quarantined domains ("Run on sites with restrictions" option)
-<details><summary>Quarantined domains and Dark Reader — an explanation</summary>
-
-The option "Run on sites with restrictions", present for some extensions, is only related to quarantined domains, and is not needed for Dark Reader to work on restricted websites. In the context of Firefox's source code, "restricted domains" and "quarantined domains" are two separate things.
-
-**The "restricted domains" list** (controlled by the preference `extensions.webextensions.restrictedDomains`) is the same for all users and will restrict *all* user-installed extensions (without exceptions) from running on the specified websites. The list is controlled by Mozilla, and, as of December 2024, the list only contains Mozilla-owned domains. Sites that are not on that list will not be affected by those restrictions (meaning that the extensions will be able to run normally).
-
-**The "quarantined domains" list** (controlled by the preferences `extensions.quarantinedDomains.enabled` and `extensions.quarantinedDomains.list`) contain domains that will run extensions normally, but if Firefox detects suspicious activity from a particular extension it will block that extension on those specific websites. The list is controlled by Mozilla, and, as of December 2024, the list only contains domains related to internet banking in Brazil. For more information about quarantined domains, see "[Why are some add-ons not allowed on sites restricted by Mozilla?](https://support.mozilla.org/en-US/kb/quarantined-domains)".
-
-For Dark Reader, the option "Run on sites with restrictions" is not shown because Dark Reader is a [Recommended](https://support.mozilla.org/en-US/kb/recommended-extensions-program) extension by Mozilla. (The "Recommended" status is only relevant for "quarantined domains", and does not affect "restricted domains".)
-
-Due to the fact that it is a Recommended extension, it means that it meets the "highest standards of security, functionality, and user experience". The quarantined domains are only related to extension security, and because Dark Reader is considered secure by Mozilla, that option is not shown, meaning **it will always run even on quarantined domains** (but will still obey the "restricted domains" list if it is not empty).
-
-Regarding quarantined domains specifically, there is this [comment from Firefox's source code:](https://searchfox.org/mozilla-central/source/toolkit/components/extensions/Extension.sys.mjs#2937-2938)
-
-```
-// Privileged extensions and any extensions with a recommendation state are
-// exempt from the quarantined domains.
-```
-
-A simple way to recapitulate all this information is: "restricted domains" exist to protect Mozilla-owned sites (no user-installed extension will run on them, without exceptions), while "quarantined domains" are meant to protect users from malicious extensions (and it doesn't apply to Dark Reader because it is a Recommended extension).
-
-</details>
 
 <h2 align="center">Contributors</h2>
 <br/>
