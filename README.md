@@ -31,7 +31,7 @@ Open the terminal in the root folder and run:
 - `npm install`
 - `npm run build` or `npm run build [-- flags]`
 
-This will create a `build/release/darkreader-chrome.zip` file for use in a Chromium-based browser and a `build/release/darkreader-firefox.xpi` file for use in Firefox.
+This will create a `build/release/darkreader-chrome.zip` file for use in a Chromium-based browser.
 
 You can customize build process by passing flags to build script. To see all flags, run `npm run build -- --help`.
 
@@ -41,16 +41,6 @@ You can build Dark Reader with alternative runtime called [Deno](https://deno.la
 
 Please note that if you encounter error `Too many open files (os error 24)`, then you should use the newer version of Deno (preferably built from source or canary).
 
-### Bundling with official Firefox store signatures (experimental)
-
-Prior to publication, extension stores provide digital signatures for extensions. These digital signatures certify the integrity of the archive (that extension bundle did not get corrupted or bit-rotted) and that extension store performed very basic extension validation.
-
-Dark Reader repository contains these digital signatures and you can add them to the extension bundle. The following will build Dark Reader for Firefox version 4.9.63:
-```
-npm run build -- --firefox --version=4.9.63
-```
-
-Please note that only Firefox Add-ons store signatures are present in the repository right now. Also, due to NodeJS and TypeScript version compatibility, one might have to first check out the old revision (commit), then build the extension files, then check out the recent commit and create the bundle (by running only `signature` and `zip` steps).
 
 ## Using Dark Reader on a website
 
