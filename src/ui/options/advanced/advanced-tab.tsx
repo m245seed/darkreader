@@ -23,7 +23,7 @@ export function AdvancedTab(props: ViewProps): Malevic.Child {
         });
     }
 
-    const DevTools = store.DevTools;
+    const {DevTools} = store;
 
     return <div class="settings-tab">
         <SyncSettings {...props} />
