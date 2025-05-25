@@ -9,17 +9,14 @@ import {log} from './utils.js';
 export const PORT = 9000;
 const WAIT_FOR_CONNECTION = 2000;
 
-/** @type {import('ws').Server} */
+
 let server = null;
 
-/** @type {Set<WebSocket>} */
+
 const sockets = new Set();
 const times = new WeakMap();
 
-/**
- * @param {string} logLevel
- * @returns {Promise<import('ws').Server>}
- */
+
 function createServer(logLevel) {
     return new Promise((resolve) => {
         const server = new WebSocketServer({port: PORT});
@@ -53,7 +50,7 @@ function closeServer() {
 process.on('exit', closeServer);
 process.on('SIGINT', closeServer);
 
-/** @type {() => void} */
+
 let connectionAwaiter = null;
 
 function waitForConnection() {
@@ -71,10 +68,7 @@ function waitForConnection() {
     });
 }
 
-/**
- * @param {Object} options
- * @param {string} options.log
- */
+
 export async function logging({log}) {
     if (!log) {
         return;

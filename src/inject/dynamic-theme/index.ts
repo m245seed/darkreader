@@ -110,26 +110,20 @@ function createStaticStyleOverrides() {
     injectStaticStyle(userAgentStyle, fallbackStyle, 'user-agent');
 
     const textStyle = createOrUpdateStyle('darkreader--text');
-    if (theme!.useFont || theme!.textStroke > 0) {
-        textStyle.textContent = createTextStyle(theme!);
-    } else {
-        textStyle.textContent = '';
-    }
+    textStyle.textContent = theme!.useFont || theme!.textStroke > 0 ? createTextStyle(theme!) : '';
     injectStaticStyle(textStyle, userAgentStyle, 'text');
 
     const invertStyle = createOrUpdateStyle('darkreader--invert');
-    if (fixes && Array.isArray(fixes.invert) && fixes.invert.length > 0) {
-        invertStyle.textContent = [
+    invertStyle.textContent = fixes && Array.isArray(fixes.invert) && fixes.invert.length > 0 
+        ? [
             `${fixes.invert.join(', ')} {`,
             `    filter: ${getCSSFilterValue({
                 ...theme!,
                 contrast: theme!.mode === 0 ? theme!.contrast : clamp(theme!.contrast - 10, 0, 100),
             })} !important;`,
             '}',
-        ].join('\n');
-    } else {
-        invertStyle.textContent = '';
-    }
+        ].join('\n')
+        : '';
     injectStaticStyle(invertStyle, textStyle, 'invert');
 
     const inlineStyle = createOrUpdateStyle('darkreader--inline');
@@ -154,8 +148,8 @@ function createStaticStyleOverrides() {
     const rootVarsStyle = createOrUpdateStyle('darkreader--root-vars');
     injectStaticStyle(rootVarsStyle, variableStyle, 'root-vars');
 
-    const enableStyleSheetsProxy = !(fixes && fixes.disableStyleSheetsProxy);
-    const enableCustomElementRegistryProxy = !(fixes && fixes.disableCustomElementRegistryProxy);
+    const enableStyleSheetsProxy = !fixes?.disableStyleSheetsProxy;
+    const enableCustomElementRegistryProxy = !fixes?.disableCustomElementRegistryProxy;
     document.dispatchEvent(new CustomEvent('__darkreader__cleanUp'));
     if (__CHROMIUM_MV3__) {
         // Notify the dedicated injector of the data.
@@ -168,7 +162,7 @@ function createStaticStyleOverrides() {
     }
 
     const overrideStyle = createOrUpdateStyle('darkreader--override');
-    overrideStyle.textContent = fixes && fixes.css ? replaceCSSTemplates(fixes.css) : '';
+    overrideStyle.textContent = fixes?.css ? replaceCSSTemplates(fixes.css) : '';
     injectStaticStyle(overrideStyle, document.head.lastChild, 'override');
 }
 
@@ -179,22 +173,20 @@ function createShadowStaticStyleOverridesInner(root: ShadowRoot) {
     inlineStyle.textContent = getInlineOverrideStyle();
     root.insertBefore(inlineStyle, root.firstChild);
     const overrideStyle = createOrUpdateStyle('darkreader--override', root);
-    overrideStyle.textContent = fixes && fixes.css ? replaceCSSTemplates(fixes.css) : '';
+    overrideStyle.textContent = fixes?.css ? replaceCSSTemplates(fixes.css) : '';
     root.insertBefore(overrideStyle, inlineStyle.nextSibling);
 
     const invertStyle = createOrUpdateStyle('darkreader--invert', root);
-    if (fixes && Array.isArray(fixes.invert) && fixes.invert.length > 0) {
-        invertStyle.textContent = [
+    invertStyle.textContent = fixes && Array.isArray(fixes.invert) && fixes.invert.length > 0
+        ? [
             `${fixes.invert.join(', ')} {`,
             `    filter: ${getCSSFilterValue({
                 ...theme!,
                 contrast: theme!.mode === 0 ? theme!.contrast : clamp(theme!.contrast - 10, 0, 100),
             })} !important;`,
             '}',
-        ].join('\n');
-    } else {
-        invertStyle.textContent = '';
-    }
+        ].join('\n')
+        : '';
     root.insertBefore(invertStyle, overrideStyle.nextSibling);
     shadowRootsWithOverrides.add(root);
 }
@@ -262,13 +254,13 @@ function createDynamicStyleOverrides() {
     const allStyles = getManageableStyles(document);
 
     const newManagers = allStyles
-        .filter((style) => !styleManagers.has(style))
-        .map((style) => createManager(style));
+        .filter((style: StyleElement) => !styleManagers.has(style))
+        .map((style: StyleElement) => createManager(style));
     newManagers
-        .map((manager) => manager.details({secondRound: false}))
-        .filter((detail) => detail && detail.rules.length > 0)
-        .forEach((detail) => {
-            variablesStore.addRulesForMatching(detail!.rules);
+        .map((manager: StyleManager) => manager.details({secondRound: false}))
+        .filter((detail: {rules: CSSRuleList} | null) => detail && detail.rules.length > 0)
+        .forEach((detail: {rules: CSSRuleList}) => {
+            variablesStore.addRulesForMatching(detail.rules);
         });
 
     variablesStore.matchVariablesAndDependents();
@@ -350,9 +342,7 @@ function createManager(element: StyleElement) {
             logInfo(`Current amount of styles loading: ${loadingStyles.size}`);
 
             const fallbackStyle = createOrUpdateStyle('darkreader--fallback');
-            if (!fallbackStyle.textContent) {
-                fallbackStyle.textContent = getModifiedFallbackStyle(theme!, {strict: false});
-            }
+            fallbackStyle.textContent ??= getModifiedFallbackStyle(theme!, {strict: false});
         }
     }
 
@@ -470,13 +460,15 @@ function getAdoptedStyleSheetFallback(sheet: CSSStyleSheet) {
 function watchForUpdates() {
     const managedStyles = Array.from(styleManagers.keys());
     watchForStyleChanges(managedStyles, ({created, updated, removed, moved}) => {
-        const stylesToRemove = removed;
+        removed.forEach((style) => removeManager(style));
+        
         const stylesToManage = created.concat(updated).concat(moved)
             .filter((style) => !styleManagers.has(style));
         const stylesToRestore = moved
             .filter((style) => styleManagers.has(style));
-        logInfo(`Styles to be removed:`, stylesToRemove);
-        stylesToRemove.forEach((style) => removeManager(style));
+        
+        logInfo(`Styles to be removed:`, removed);
+        
         const newManagers = stylesToManage
             .map((style) => createManager(style));
         newManagers
@@ -497,7 +489,7 @@ function watchForUpdates() {
     watchForInlineStyles((element) => {
         overrideInlineStyle(element, theme!, ignoredInlineSelectors, ignoredImageAnalysisSelectors);
         if (element === document.documentElement) {
-            const styleAttr = element.getAttribute('style') || '';
+            const styleAttr = element.getAttribute('style') ?? '';
             if (styleAttr.includes('--')) {
                 variablesStore.matchVariablesAndDependents();
                 const rootVarsStyle = createOrUpdateStyle('darkreader--root-vars');
@@ -646,6 +638,25 @@ export function createOrUpdateDynamicThemeInternal(themeConfig: Theme, dynamicTh
     theme = themeConfig;
     fixes = dynamicThemeFixes;
 
+    if (shouldSkipExecution(themeConfig, dynamicThemeFixes)) {
+        return;
+    }
+
+    prepareConfigValues();
+    
+    isIFrame = iframe;
+
+    if (document.head) {
+        executeWithHead();
+    } else {
+        setupHeadWatcher();
+    }
+
+    prevTheme = theme;
+    prevFixes = fixes;
+}
+
+function shouldSkipExecution(themeConfig: Theme, dynamicThemeFixes: DynamicThemeFix | null): boolean {
     const colorAffectingKeys: Array<keyof Theme> = [
         'brightness',
         'contrast',
@@ -659,13 +670,13 @@ export function createOrUpdateDynamicThemeInternal(themeConfig: Theme, dynamicTh
 
     if (prevTheme && prevFixes) {
         const themeKeys = new Set<keyof Theme>([
-            ...(Object.keys(theme) as Array<keyof Theme>),
+            ...(Object.keys(theme!) as Array<keyof Theme>),
             ...(Object.keys(prevTheme) as Array<keyof Theme>),
         ]);
 
         let onlyColorsChanged = true;
         for (const key of themeKeys) {
-            if (theme[key] !== prevTheme[key] && !colorAffectingKeys.includes(key)) {
+            if (theme![key] !== prevTheme[key] && !colorAffectingKeys.includes(key)) {
                 onlyColorsChanged = false;
                 break;
             }
@@ -676,17 +687,25 @@ export function createOrUpdateDynamicThemeInternal(themeConfig: Theme, dynamicTh
         }
 
         if (onlyColorsChanged) {
-            const palette = getColorPalette();
-            clearColorPalette();
-            palette.background.forEach((color) => modifyBackgroundColor(color, theme!));
-            palette.text.forEach((color) => modifyForegroundColor(color, theme!));
-            palette.border.forEach((color) => modifyBorderColor(color, theme!));
-            return;
+            updatePaletteColors();
+            return true;
         }
 
         clearColorPalette();
     }
+    
+    return false;
+}
 
+function updatePaletteColors() {
+    const palette = getColorPalette();
+    clearColorPalette();
+    palette.background.forEach((color) => modifyBackgroundColor(color, theme!));
+    palette.text.forEach((color) => modifyForegroundColor(color, theme!));
+    palette.border.forEach((color) => modifyBorderColor(color, theme!));
+}
+
+function prepareConfigValues() {
     if (fixes) {
         ignoredImageAnalysisSelectors = Array.isArray(fixes.ignoreImageAnalysis) ? fixes.ignoreImageAnalysis : [];
         ignoredInlineSelectors = Array.isArray(fixes.ignoreInlineStyle) ? fixes.ignoreInlineStyle : [];
@@ -695,63 +714,64 @@ export function createOrUpdateDynamicThemeInternal(themeConfig: Theme, dynamicTh
         ignoredInlineSelectors = [];
     }
 
-    if (theme.immediateModify) {
+    if (theme!.immediateModify) {
         setIsDOMReady(() => {
             return true;
         });
     }
+}
 
-    isIFrame = iframe;
-
+function executeWithHead() {
     const ready = () => {
-        const success = () => {
-            disableConflictingPlugins();
-            document.documentElement.setAttribute('data-darkreader-mode', 'dynamic');
-            document.documentElement.setAttribute('data-darkreader-scheme', theme!.mode ? 'dark' : 'dimmed');
-            createThemeAndWatchForUpdates();
-        };
-
-        const failure = () => {
-            removeDynamicTheme();
-        };
-
         if (isDRLocked()) {
             removeNode(document.querySelector('.darkreader--fallback'));
-        } else if (isAnotherDarkReaderInstanceActive()) {
+            return;
+        }
+        
+        if (isAnotherDarkReaderInstanceActive()) {
             interceptOldScript({
-                success,
-                failure,
+                success: () => {
+                    setupDarkReader();
+                },
+                failure: () => {
+                    removeDynamicTheme();
+                }
             });
-        } else {
-            success();
+            return;
         }
+        
+        setupDarkReader();
     };
+    
+    ready();
+}
 
-    if (document.head) {
-        ready();
-    } else {
-        if (!isFirefox) {
-            const fallbackStyle = createOrUpdateStyle('darkreader--fallback');
-            document.documentElement.appendChild(fallbackStyle);
-            fallbackStyle.textContent = getModifiedFallbackStyle(theme, {strict: true});
-        }
+function setupDarkReader() {
+    disableConflictingPlugins();
+    document.documentElement.setAttribute('data-darkreader-mode', 'dynamic');
+    document.documentElement.setAttribute('data-darkreader-scheme', theme!.mode ? 'dark' : 'dimmed');
+    createThemeAndWatchForUpdates();
+}
 
-        headObserver?.disconnect();
-        headObserver = new MutationObserver(() => {
-            if (document.head) {
-                headObserver?.disconnect();
-                ready();
-            }
-        });
-        cleaners.push(() => {
-            headObserver?.disconnect();
-            headObserver = null;
-        });
-        headObserver.observe(document, {childList: true, subtree: true});
+function setupHeadWatcher() {
+    if (!isFirefox) {
+        const fallbackStyle = createOrUpdateStyle('darkreader--fallback');
+        document.documentElement.appendChild(fallbackStyle);
+        fallbackStyle.textContent = getModifiedFallbackStyle(theme!, {strict: true});
     }
 
-    prevTheme = theme;
-    prevFixes = fixes;
+    headObserver?.disconnect();
+    headObserver = new MutationObserver(() => {
+        if (document.head) {
+            headObserver?.disconnect();
+            executeWithHead();
+        }
+    });
+    cleaners.push(() => {
+        headObserver?.disconnect();
+        headObserver = null;
+    });
+    headObserver.observe(document, {childList: true, subtree: true});
 }
 
 function removeProxy() {

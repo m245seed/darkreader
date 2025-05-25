@@ -1,9 +1,5 @@
-/**
- * This file executes build.js in a child process, this is needed for two things:
- *  1. Enable interrupts like Ctrl+C for regular builds
- *  2. Support building older versions of Dark Reader and then inserting signatures into archives
- */
- // @ts-check
+
+ 
 import {fork} from 'node:child_process';
 import {join} from 'node:path';
 import process from 'node:process';
@@ -15,7 +11,7 @@ const __filename = join(fileURLToPath(import.meta.url), '../build.js');
 
 async function executeChildProcess(args) {
     const child = fork(__filename, args);
-    // Send SIGINTs as SIGKILLs, which are not ignored
+    
     process.on('SIGINT', () => {
         child.kill('SIGKILL');
     });

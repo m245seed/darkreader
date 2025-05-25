@@ -1,4 +1,4 @@
-// @ts-check
+
 import {getDestDir} from './paths.js';
 import {PLATFORM} from './platform.js';
 import {createTask} from './task.js';

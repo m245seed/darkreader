@@ -1,4 +1,4 @@
-// @ts-check
+
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -10,7 +10,7 @@ import {readFile, writeFile} from './utils.js';
 
 const srcLocalesDir = 'src/_locales';
 
-/** @type {(filePath: string) => Promise<string>} */
+
 async function bundleLocale(filePath) {
     let file = await readFile(filePath);
     file = file.replace(/^#.*?$/gm, '');
@@ -57,12 +57,9 @@ async function writeFiles(data, fileName, {platforms, debug}){
     }
 }
 
-/**
- * @param {string} srcLocalesDir
- * @returns {ReturnType<typeof createTask>}
- */
+
 export function createBundleLocalesTask(srcLocalesDir) {
-    /** @type {(changedFiles: string[], watcher: any, platforms: any) => Promise<void>} */
+    
     const onChange = async (changedFiles, _, platforms) => {
         const localesSrcDir = absolutePath(srcLocalesDir);
         for (const file of changedFiles) {
@@ -77,7 +74,7 @@ export function createBundleLocalesTask(srcLocalesDir) {
         'bundle-locales',
         (options) => bundleLocales(srcLocalesDir, options),
     ).addWatcher(
-        [`${srcLocalesDir}/**/*.config`],
+        [`${srcLocalesDir}*.config`],
         onChange,
     );
 }

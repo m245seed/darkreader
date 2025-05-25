@@ -1,13 +1,13 @@
-import {push} from '../../../utils/array';
-import type {ElementsTreeOperations} from '../../utils/dom';
-import {iterateShadowHosts, createOptimizedTreeObserver} from '../../utils/dom';
-import {checkImageSelectors} from '../modify-css';
-import type {StyleElement} from '../style-manager';
-import {shouldManageStyle, getManageableStyles} from '../style-manager';
+import { push } from '../../../utils/array';
+import type { ElementsTreeOperations } from '../../utils/dom';
+import { iterateShadowHosts, createOptimizedTreeObserver } from '../../utils/dom';
+import { checkImageSelectors } from '../modify-css';
+import type { StyleElement } from '../style-manager';
+import { shouldManageStyle, getManageableStyles } from '../style-manager';
 
-import {collectUndefinedElements, handleIsDefined, isCustomElement, recordUndefinedElement, unsubscribeFromDefineCustomElements, watchWhenCustomElementsDefined} from './custom-elements';
+import { collectUndefinedElements, handleIsDefined, isCustomElement, recordUndefinedElement, unsubscribeFromDefineCustomElements, watchWhenCustomElementsDefined } from './custom-elements';
 
-const observers: Array<{disconnect(): void}> = [];
+const observers: Array<{ disconnect(): void }> = [];
 let observedRoots: WeakSet<Node>;
 let handledShadowHosts: WeakSet<Node>;
 
@@ -34,12 +34,13 @@ export function watchForStylePositions(
     };
     currentStyles.forEach((node) => {
         let root: Node | null = node;
-        while ((root = root.parentNode)) {
+        while (root) {
             if (root === document || root.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
                 const prevStyles = getPrevStyles(root);
                 prevStyles.add(node);
                 break;
             }
+            root = root.parentNode ?? null;
         }
     });
     const prevStyleSiblings = new WeakMap<Element, Element>();
@@ -64,8 +65,8 @@ export function watchForStylePositions(
 
     currentStyles.forEach(saveStylePosition);
 
-    function handleStyleOperations(root: Document | ShadowRoot, operations: {createdStyles: Set<StyleElement>; movedStyles: Set<StyleElement>; removedStyles: Set<StyleElement>}) {
-        const {createdStyles, removedStyles, movedStyles} = operations;
+    function handleStyleOperations(root: Document | ShadowRoot, operations: { createdStyles: Set<StyleElement>; movedStyles: Set<StyleElement>; removedStyles: Set<StyleElement> }) {
+        const { createdStyles, removedStyles, movedStyles } = operations;
 
         createdStyles.forEach((s) => saveStylePosition(s));
         movedStyles.forEach((s) => saveStylePosition(s));
@@ -85,16 +86,16 @@ export function watchForStylePositions(
         }
     }
 
-    function handleMinorTreeMutations(root: Document | ShadowRoot, {additions, moves, deletions}: ElementsTreeOperations) {
+    function handleMinorTreeMutations(root: Document | ShadowRoot, { additions, moves, deletions }: ElementsTreeOperations) {
         const createdStyles = new Set<StyleElement>();
         const removedStyles = new Set<StyleElement>();
         const movedStyles = new Set<StyleElement>();
 
-        additions.forEach((node) => getManageableStyles(node).forEach((style) => createdStyles.add(style)));
-        deletions.forEach((node) => getManageableStyles(node).forEach((style) => removedStyles.add(style)));
-        moves.forEach((node) => getManageableStyles(node).forEach((style) => movedStyles.add(style)));
+        additions.forEach((node) => getManageableStyles(node).forEach((style: StyleElement) => createdStyles.add(style)));
+        deletions.forEach((node) => getManageableStyles(node).forEach((style: StyleElement) => removedStyles.add(style)));
+        moves.forEach((node) => getManageableStyles(node).forEach((style: StyleElement) => movedStyles.add(style)));
 
-        handleStyleOperations(root, {createdStyles, removedStyles, movedStyles});
+        handleStyleOperations(root, { createdStyles, removedStyles, movedStyles });
 
         additions.forEach((n) => {
             deepObserve(n);
@@ -133,7 +134,7 @@ export function watchForStylePositions(
             }
         });
 
-        handleStyleOperations(root, {createdStyles, removedStyles, movedStyles});
+        handleStyleOperations(root, { createdStyles, removedStyles, movedStyles });
 
         deepObserve(root);
         collectUndefinedElements(root);
@@ -145,7 +146,7 @@ export function watchForStylePositions(
         const updatedStyles = new Set<StyleElement>();
         const removedStyles = new Set<StyleElement>();
         mutations.forEach((m) => {
-            const {target} = m;
+            const { target } = m;
             if (target.isConnected) {
                 if (shouldManageStyle(target)) {
                     updatedStyles.add(target as StyleElement);
@@ -173,13 +174,13 @@ export function watchForStylePositions(
             onHugeMutations: handleHugeTreeMutations,
         });
         const attrObserver = new MutationObserver(handleAttributeMutations);
-        attrObserver.observe(root, {attributeFilter: ['rel', 'disabled', 'media', 'href'], subtree: true});
+        attrObserver.observe(root, { attributeFilter: ['rel', 'disabled', 'media', 'href'], subtree: true });
         observers.push(treeObserver, attrObserver);
         observedRoots.add(root);
     }
 
     function subscribeForShadowRootChanges(node: Element) {
-        const {shadowRoot} = node;
+        const { shadowRoot } = node;
         if (shadowRoot == null || observedRoots.has(shadowRoot)) {
             return;
         }
@@ -198,9 +199,9 @@ export function watchForStylePositions(
         hosts = hosts.filter((node) => !handledShadowHosts.has(node));
         const newStyles: StyleElement[] = [];
         hosts.forEach((host) => push(newStyles, getManageableStyles(host.shadowRoot)));
-        update({created: newStyles, updated: [], removed: [], moved: []});
+        update({ created: newStyles, updated: [], removed: [], moved: [] });
         hosts.forEach((host) => {
-            const {shadowRoot} = host;
+            const { shadowRoot } = host;
             if (shadowRoot == null) {
                 return;
             }

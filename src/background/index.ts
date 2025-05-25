@@ -181,8 +181,7 @@ if (__TEST__) {
                     Extension.collectData().then(respond);
                     break;
                 case 'getManifest': {
-                    const data = chrome.runtime.getManifest();
-                    respond(data);
+                    respond(MANIFEST);
                     break;
                 }
                 case 'changeChromeStorage': {
@@ -265,7 +264,7 @@ function writeInstallationVersion(
         storage.set({installation: {
             date: Date.now(),
             reason: details.reason,
-            version: details.previousVersion ?? chrome.runtime.getManifest().version,
+            version: details.previousVersion ?? MANIFEST.version,
         }});
     });
 }

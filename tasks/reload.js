@@ -1,4 +1,4 @@
-// @ts-check
+
 import process from 'node:process';
 
 import {WebSocketServer} from 'ws';
@@ -8,19 +8,17 @@ import {log} from './utils.js';
 export const PORT = 8890;
 const WAIT_FOR_CONNECTION = 2000;
 
-/** @type {import('ws').WebSocketServer | null} */
+
 let server = null;
 
-/** @type {Set<import('ws').WebSocket>} */
+
 const sockets = new Set();
-/** @type {WeakMap<import('ws').WebSocket, number>} */
+
 const times = new WeakMap();
-/** @type {WeakMap<import('ws').WebSocket, string>} */
+
 const userAgents = new WeakMap();
 
-/**
- * @returns {Promise<import('ws').WebSocketServer>}
- */
+
 function createServer() {
     return new Promise((resolve) => {
         const server = new WebSocketServer({port: PORT});
@@ -64,7 +62,7 @@ function closeServer() {
 process.on('exit', closeServer);
 process.on('SIGINT', closeServer);
 
-/** @type {(() => void) | null} */
+
 let connectionAwaiter = null;
 
 function waitForConnection() {
@@ -82,18 +80,12 @@ function waitForConnection() {
     });
 }
 
-/**
- * @param {import('ws').WebSocket} ws
- * @param {any} message
- */
+
 function send(ws, message) {
     ws.send(JSON.stringify(message));
 }
 
-/**
- * @param {Object} options
- * @param {string} options.type
- */
+
 export async function reload({type}) {
     if (!server) {
         server = await createServer();
@@ -111,7 +103,7 @@ export async function reload({type}) {
 }
 
 export function getConnectedBrowsers() {
-    /** @type {Set<string>} */
+    
     const browsers = new Set();
     sockets.forEach((ws) => {
         const userAgent = userAgents.get(ws);

@@ -1,4 +1,4 @@
-// @ts-check
+
 import {getDestDir, absolutePath} from './paths.js';
 import {PLATFORM} from './platform.js';
 import * as reload from './reload.js';
@@ -20,7 +20,7 @@ async function patchManifest(platform, debug, watch, test) {
         patched.description = `Debug build, platform: ${platform}, watch: ${watch ? 'yes' : 'no'}.`;
         patched.version_name = 'Debug';
     }
-    // Needed to test settings export and CSS theme export via a download
+    
     if (test || debug) {
         patched.permissions.push('downloads');
     }
