@@ -43,6 +43,7 @@ function html(platform, title, hasLoader, hasStyleSheet) {
 /** @type {HTMLEntry[]} */
 const htmlEntries = [
     {
+<<<<<<< ji782z-codex/remove-firefox-specific-paths-and-tooling
         title: 'Dark Reader background',
         path: 'background/index.html',
         hasLoader: false,
@@ -51,6 +52,8 @@ const htmlEntries = [
         platforms: [PLATFORM.CHROMIUM_MV3],
     },
     {
+=======
+>>>>>>> main
         title: 'Dark Reader settings',
         path: 'ui/popup/index.html',
         hasLoader: true,

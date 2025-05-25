@@ -14,7 +14,7 @@ import saveLog from './log.js';
 import {PLATFORM} from './platform.js';
 import * as reload from './reload.js';
 import {runTasks} from './task.js';
-import {log, pathExistsSync} from './utils.js';
+import {log} from './utils.js';
 import zip from './zip.js';
 
 const standardTask = [

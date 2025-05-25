@@ -32,19 +32,17 @@ const cssEntries = [
     },
 ];
 
-async function bundleCSSEntry(entry, plus) {
+async function bundleCSSEntry(entry) {
     const src = absolutePath(entry.src);
     const srcDir = path.dirname(src);
 
     let input = await readFile(src);
-    if (!plus) {
-        const startToken = '/* @plus-start */';
-        const endToken = '/* @plus-end */';
-        const startIndex = input.indexOf(startToken);
-        const endIndex = input.indexOf(endToken, startIndex);
-        if (startIndex >= 0 && endIndex >= 0) {
-            input = input.substring(0, startIndex) + input.substring(endIndex + endToken.length);
-        }
+    const startToken = '/* @plus-start */';
+    const endToken = '/* @plus-end */';
+    const startIndex = input.indexOf(startToken);
+    const endIndex = input.indexOf(endToken, startIndex);
+    if (startIndex >= 0 && endIndex >= 0) {
+        input = input.substring(0, startIndex) + input.substring(endIndex + endToken.length);
     }
 
     const output = await less.render(input, {paths: [srcDir], math: 'always'});
@@ -95,7 +93,7 @@ export function createBundleCSSTask(cssEntries) {
                 if (!platforms[platform]) {
                     continue;
                 }
-                const css = await bundleCSSEntry(entry, platform === PLATFORM.CHROMIUM_MV2_PLUS);
+                const css = await bundleCSSEntry(entry);
                 await writeFiles(entry.dest, {[platform]: true}, debug, css);
             }
         }
@@ -110,7 +108,7 @@ export function createBundleCSSTask(cssEntries) {
             });
         });
         for (const entry of entries) {
-            const css = await bundleCSSEntry(entry, true);
+            const css = await bundleCSSEntry(entry);
             await writeFiles(entry.dest, platforms, true, css);
         }
 

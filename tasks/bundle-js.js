@@ -88,17 +88,13 @@ async function bundleJS(/** @type {JSEntry} */entry, platform, debug, watch, log
     // TODO(anton): remove this once Firefox supports tab.eval() via WebDriver BiDi
     const mustRemoveEval = false;
 
+
     const cacheId = `${entry.src}-${platform}-${debug}-${watch}-${log}-${test}`;
 
     const bundle = await rollup.rollup({
         input: absolutePath(src),
         preserveSymlinks: true,
         onwarn: (error) => {
-            // TODO(anton): remove this once Firefox supports tab.eval() via WebDriver BiDi
-            if (error.code === 'EVAL' && !mustRemoveEval) {
-                return;
-            }
-
             throw error;
         },
         plugins: [
