@@ -13,9 +13,7 @@ import type {FetchRequestParameters} from './utils/network';
 import {createFileLoader} from './utils/network';
 import {isPanel} from './utils/tab';
 
-declare const __CHROMIUM_MV2__: boolean;
 declare const __CHROMIUM_MV3__: boolean;
-declare const __THUNDERBIRD__: boolean;
 
 interface TabManagerOptions {
     getConnectionMessage: (tabURl: string, url: string, isTopFrame: boolean, topFrameHasDarkTheme?: boolean) => Promise<MessageBGtoCS>;
@@ -117,14 +115,14 @@ export default class TabManager {
                     }
 
                     const {frameId} = sender;
-                    const isTopFrame: boolean = (__CHROMIUM_MV2__ || __CHROMIUM_MV3__) ? (frameId === 0 || message.data.isTopFrame) : frameId === 0;
+                    const isTopFrame: boolean = frameId === 0 || message.data.isTopFrame;
                     const url = sender.url!;
                     const tabId = sender.tab!.id!;
                     const scriptId = message.scriptId!;
                     const topFrameHasDarkTheme = isTopFrame ? false : TabManager.tabs[tabId]?.[0]?.darkThemeDetected;
                     // Chromium 106+ may prerender frames resulting in top-level frames with chrome.runtime.MessageSender.tab.url
                     // set to chrome://newtab/ and positive chrome.runtime.MessageSender.frameId
-                    const tabURL = ((__CHROMIUM_MV2__ || __CHROMIUM_MV3__) && isTopFrame) ? url : sender.tab!.url!;
+                    const tabURL = isTopFrame ? url : sender.tab!.url!;
                     const documentId: string | null = __CHROMIUM_MV3__ ? sender.documentId! : (sender.documentId || null);
 
                     TabManager.addFrame(tabId, frameId!, documentId, scriptId, url, isTopFrame);
@@ -159,8 +157,8 @@ export default class TabManager {
                     const tabURL = sender.tab!.url!;
                     const frameId = sender.frameId!;
                     const url = sender.url!;
-                    const documentId: string | null = __CHROMIUM_MV3__ ? sender.documentId! : (sender.documentId! || null);
-                    const isTopFrame: boolean = (__CHROMIUM_MV2__ || __CHROMIUM_MV3__) ? (frameId === 0 || message.data.isTopFrame) : frameId === 0;
+                    const documentId: string | null = sender.documentId!;
+                    const isTopFrame: boolean = frameId === 0 || message.data.isTopFrame;
                     if (TabManager.tabs[tabId][frameId].timestamp < TabManager.timestamp) {
                         const response = TabManager.getTabMessage(tabURL, url, isTopFrame);
                         response.scriptId = message.scriptId!;
@@ -213,14 +211,6 @@ export default class TabManager {
                         TabManager.sendDocumentMessage(sender.tab!.id!, sender.documentId!, {type: MessageTypeBGtoCS.FETCH_RESPONSE, id, ...response}, sender.frameId!);
                     };
 
-                    if (__THUNDERBIRD__) {
-                        // In thunderbird some CSS is loaded on a chrome:// URL.
-                        // Thunderbird restricted Add-ons to load those URL's.
-                        if ((message.data.url as string).startsWith('chrome://')) {
-                            sendResponse({data: null});
-                            return;
-                        }
-                    }
                     try {
                         const {url, responseType, mimeType, origin} = message.data;
                         if (!TabManager.fileLoader) {
@@ -283,10 +273,6 @@ export default class TabManager {
                     chrome.tabs.sendMessage<MessageBGtoCS>(tabId, message, {documentId}).catch(() => { /* noop */ })
                 )
             );
-            return;
-        }
-        if (__CHROMIUM_MV2__) {
-            chrome.tabs.sendMessage<MessageBGtoCS>(tabId, message, documentId ? {documentId} : {frameId});
             return;
         }
         chrome.tabs.sendMessage<MessageBGtoCS>(tabId, message, {frameId});

@@ -76,29 +76,17 @@ async function bundleJS(/** @type {JSEntry} */entry, platform, debug, watch, log
     const {src, dest} = entry;
 
     let replace = {};
-    switch (platform) {
-        case PLATFORM.FIREFOX_MV2:
-        case PLATFORM.THUNDERBIRD:
-            if (entry.src === 'src/ui/popup/index.tsx') {
-                break;
-            }
-            replace = {
-                'chrome.fontSettings.getFontList': `chrome['font' + 'Settings']['get' + 'Font' + 'List']`,
-                'chrome.fontSettings': `chrome['font' + 'Settings']`,
-            };
-            break;
-        case PLATFORM.CHROMIUM_MV3:
-            replace = {
-                'chrome.browserAction.setIcon': 'chrome.action.setIcon',
-                'chrome.browserAction.setBadgeBackgroundColor': 'chrome.action.setBadgeBackgroundColor',
-                'chrome.browserAction.setBadgeText': 'chrome.action.setBadgeText',
-            };
-            break;
+    if (platform === PLATFORM.CHROMIUM_MV3) {
+        replace = {
+            'chrome.browserAction.setIcon': 'chrome.action.setIcon',
+            'chrome.browserAction.setBadgeBackgroundColor': 'chrome.action.setBadgeBackgroundColor',
+            'chrome.browserAction.setBadgeText': 'chrome.action.setBadgeText',
+        };
     }
 
     // See comment below
     // TODO(anton): remove this once Firefox supports tab.eval() via WebDriver BiDi
-    const mustRemoveEval = !test && (platform === PLATFORM.FIREFOX_MV2) && (entry.src === 'src/inject/index.ts');
+    const mustRemoveEval = false;
 
     const cacheId = `${entry.src}-${platform}-${debug}-${watch}-${log}-${test}`;
 
@@ -139,9 +127,7 @@ async function bundleJS(/** @type {JSEntry} */entry, platform, debug, watch, log
                 sourceMap: debug ? true : false,
                 inlineSources: debug ? true : false,
                 noEmitOnError: watch ? false : true,
-                paths: platform === PLATFORM.CHROMIUM_MV2_PLUS ? {
-                    '@plus/*': ['./plus/*'],
-                } : {
+                paths: {
                     '@plus/*': ['./stubs/*'],
                 },
             }),
@@ -149,11 +135,11 @@ async function bundleJS(/** @type {JSEntry} */entry, platform, debug, watch, log
                 preventAssignment: true,
                 ...replace,
                 __DEBUG__: debug,
-                __CHROMIUM_MV2__: platform === PLATFORM.CHROMIUM_MV2 || platform === PLATFORM.CHROMIUM_MV2_PLUS,
-                __CHROMIUM_MV3__: platform === PLATFORM.CHROMIUM_MV3,
-                __FIREFOX_MV2__: platform === PLATFORM.FIREFOX_MV2,
-                __THUNDERBIRD__: platform === PLATFORM.THUNDERBIRD,
-                __PLUS__: platform === PLATFORM.CHROMIUM_MV2_PLUS,
+                __CHROMIUM_MV2__: false,
+                __CHROMIUM_MV3__: true,
+                __FIREFOX_MV2__: false,
+                __THUNDERBIRD__: false,
+                __PLUS__: false,
                 __PORT__: watch ? String(PORT) : '-1',
                 __TEST__: test,
                 __WATCH__: watch,
@@ -205,12 +191,7 @@ export function createBundleJSTask(jsEntries) {
         let platforms = {};
         const connectedBrowsers = reload.getConnectedBrowsers();
         if (connectedBrowsers.includes('chrome')) {
-            platforms.chrome = initialPlatforms.chrome;
             platforms['chrome-mv3'] = initialPlatforms['chrome-mv3'];
-            platforms['chrome-plus'] = initialPlatforms['chrome-plus'];
-        }
-        if (connectedBrowsers.includes('firefox')) {
-            platforms.firefox = true;
         }
         if (connectedBrowsers.length === 0) {
             platforms = initialPlatforms;

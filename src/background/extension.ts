@@ -42,9 +42,7 @@ interface SystemColorState extends Record<string, unknown> {
     wasLastColorSchemeDark: boolean | null;
 }
 
-declare const __CHROMIUM_MV2__: boolean;
 declare const __CHROMIUM_MV3__: boolean;
-declare const __THUNDERBIRD__: boolean;
 
 export class Extension {
     private static autoState: AutomationState = '';
@@ -254,9 +252,7 @@ export class Extension {
         Extension.onAppToggle();
         logInfo('loaded', UserStorage.settings);
 
-        if (__THUNDERBIRD__) {
-            TabManager.registerMailDisplayScript();
-        } else if (!__CHROMIUM_MV3__ || Extension.isFirstLoad) {
+        if (!__CHROMIUM_MV3__ || Extension.isFirstLoad) {
             TabManager.updateContentScript({runOnProtectedPages: UserStorage.settings.enableForProtectedPages});
         }
 
