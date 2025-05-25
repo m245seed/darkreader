@@ -56,7 +56,7 @@ export function MobileLinks({expanded, onLinkClick, onClose}: MobileLinksProps) 
                     <div class="news__mobile__right">
                         <img
                             class="news__qr-code"
-                            src={`../assets/images/${isFirefox ? 'mobile-qr-code-firefox.png' : 'mobile-qr-code.png'}`}
+                            src={`../assets/images/${isFirefox ? 'mobile-qr-code-firefox.webp' : 'mobile-qr-code.webp'}`}
                         />
                     </div>
                 </div>

@@ -27,7 +27,7 @@ function html(platform, title, hasLoader, hasStyleSheet) {
             '        <link rel="stylesheet" type="text/css" href="style.css" />',
             '        <link',
             '            rel="shortcut icon"',
-            '            href="../assets/images/darkreader-icon-256x256.png"',
+            '            href="../assets/images/darkreader-icon-256x256.webp"',
             '        />',
         ] : []),
         '        <script src="index.js" defer></script>',
