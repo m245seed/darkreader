@@ -44,3 +44,5 @@ deno.json
 # System files
 #-----------------------------------
 .DS_Store
+
+.early.coverage
