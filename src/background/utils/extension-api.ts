@@ -174,15 +174,10 @@ export async function getCommands(): Promise<chrome.commands.Command[]> {
 }
 
 export function keepListeningToEvents(): () => void {
-    let intervalId = 0;
-    const keepHopeAlive = () => {
-        intervalId = setInterval(chrome.runtime.getPlatformInfo, getDuration({seconds: 10}));
-    };
-    chrome.runtime.onStartup.addListener(keepHopeAlive);
-    keepHopeAlive();
+    // Service worker wakes up when events occur (e.g. alarms, messages).
+    // No polling or startup listener is required.
     const stopListening = () => {
-        clearInterval(intervalId);
-        chrome.runtime.onStartup.removeListener(keepHopeAlive);
+        /* noop */
     };
     return stopListening;
 }
