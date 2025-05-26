@@ -1,14 +1,14 @@
-// @ts-check
+
 import {getDestDir} from './paths.js';
 import {PLATFORM} from './platform.js';
 import * as reload from './reload.js';
 import {createTask} from './task.js';
 import {pathExists, copyFile, getPaths} from './utils.js';
 
-/** @typedef {import('chokidar').FSWatcher} FSWatcher */
-/** @typedef {import('./types').CopyEntry} CopyEntry */
 
-/** @type {CopyEntry[]} */
+
+
+
 const copyEntries = [
     {
         path: 'config',
@@ -24,20 +24,16 @@ const copyEntries = [
     },
 ];
 
-/**
- * @param {string} srcDir
- * @param {CopyEntry[]} copyEntries
- * @returns {ReturnType<typeof createTask>}
- */
+
 export function createCopyTask(srcDir, copyEntries) {
     const paths = copyEntries.map((entry) => entry.path).map((path) => `${srcDir}/${path}`);
 
-    /** @type {(path: string) => string} */
+    
     const getCwdPath = (srcPath) => {
         return srcPath.substring(srcDir.length + 1);
     };
 
-    /** @type {(path: string, options: {debug: boolean; platform: any}) => Promise<void>} */
+    
     const copyEntry = async (path, {debug, platform}) => {
         const cwdPath = getCwdPath(path);
         const destDir = getDestDir({debug, platform});
@@ -65,7 +61,7 @@ export function createCopyTask(srcDir, copyEntries) {
         await Promise.all(promises);
     };
 
-    /** @type {(changedFiles: string[], watcher: FSWatcher, platforms: any) => Promise<void>} */
+    
     const onChange = async (changedFiles, _, platforms) => {
         for (const file of changedFiles) {
             if (await pathExists(file)) {

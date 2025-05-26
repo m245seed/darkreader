@@ -1,4 +1,4 @@
-// @ts-check
+
 import {exec} from 'node:child_process';
 import {readFile, writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -9,7 +9,7 @@ const cwd = fileURLToPath(new URL('../', import.meta.url));
 const packagePath = `${cwd}/package.json`;
 
 async function getOutdated() {
-    return /** @type {Promise<object | null>} */(new Promise((resolve, reject) => {
+    return (new Promise((resolve, reject) => {
         exec('npm outdated --json', {cwd}, (error, stdout) => {
             const packages = JSON.parse(stdout.toString());
             if (typeof packages !== 'object') {
@@ -27,11 +27,7 @@ async function getOutdated() {
     }));
 }
 
-/**
- *
- * @param {string} script
- * @returns {Promise<void>}
- */
+
 async function command(script) {
     return (new Promise((resolve, reject) => {
         exec(script, {cwd}, (error) => {
@@ -91,8 +87,8 @@ async function main() {
     await command('diff darkreader-old.mjs darkreader.mjs');
     log.ok('Dependency upgrade does not result in change to built output');
 
-    // TODO: when moving this to CI, provide branch name in CI config, along with
-    // a token
+    
+    
     await command('git push origin HEAD:bump-dependencies');
     log.ok('Pushed to GitHub');
 }

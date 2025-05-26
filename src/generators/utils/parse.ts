@@ -5,7 +5,7 @@ declare const __TEST__: boolean;
 
 const INDEX_CACHE_CLEANUP_INTERVAL_IN_MS = 60000;
 
-// TODO: remove cast once types are updated
+
 declare function clearTimeout(id: ReturnType<typeof setTimeout> | null | undefined): void;
 
 interface SitePropsMut {
@@ -81,7 +81,7 @@ export function parseSitesFixesConfig<T extends SiteProps>(text: string, options
     return sites;
 }
 
-// URL patterns are guaranteed to not have protocol and leading '/'
+
 export function getDomain(url: string): string {
     try {
         return (new URL(url)).hostname.toLowerCase();
@@ -90,18 +90,7 @@ export function getDomain(url: string): string {
     }
 }
 
-/*
- * Encode all offsets into a string, where each record is 7 bytes long:
- *  - 4 bytes for start offset
- *  - 3 bytes for record length (end offset - start offset)
- * Both values are stored in base 36 (radix 36) notation.
- * Maximum supported numbers:
- *  - start offset must be no more than parseInt('zzzz', 36) = 1679615
- *  - length must be no more than parseInt('zzz', 36) = 46655
- *
- * We have to encode offsets into a string to be able to save them in
- * chrome.storage.local for use in non-persistent background contexts.
- */
+
 function encodeOffsets(offsets: Array<[number, number]>): string {
     return offsets.map(([offset, length]) => {
         const stringOffset = offset.toString(36);
@@ -160,13 +149,13 @@ function indexConfigURLs(urls: string[][]): {domains: { [domain: string]: number
                 domainLabelMembers.push({labels, index});
                 labels.forEach((l) => blockDomainLabels.add(l));
             } else {
-                // Sitefix parser encountered non-standard URL
+                
                 nonstandard.push(index);
                 break;
             }
         }
 
-        // Compute domain label frequencies, counting each label within each fix only once
+        
         for (const label of blockDomainLabels) {
             if (domainLabelFrequencies[label]) {
                 domainLabelFrequencies[label]++;
@@ -176,7 +165,7 @@ function indexConfigURLs(urls: string[][]): {domains: { [domain: string]: number
         }
     }
 
-    // For each domain name, find the most specific label
+    
     for (const {labels, index} of domainLabelMembers) {
         let label = labels[0];
         for (const currLabel of labels) {
@@ -191,7 +180,7 @@ function indexConfigURLs(urls: string[][]): {domains: { [domain: string]: number
 }
 
 function processSiteFixesConfigBlock(text: string, offsets: Array<[number, number]>, recordStart: number, recordEnd: number, urls: Array<readonly string[]>) {
-    // TODO: more formal definition of URLs and delimiters
+    
     const block = text.substring(recordStart, recordEnd);
     const lines = block.split('\n');
     const commandIndices: number[] = [];
@@ -213,11 +202,11 @@ function processSiteFixesConfigBlock(text: string, offsets: Array<[number, numbe
 
 function extractURLsFromSiteFixesConfig(text: string): {urls: string[][]; offsets: Array<[number, number]>} {
     const urls: string[][] = [];
-    // Array of tuples, where first number is an offset of record start and second number is record length.
+    
     const offsets: Array<[number, number]> = [];
 
     let recordStart = 0;
-    // Delimiter between two blocks
+    
     const delimiterRegex = /^\s*={2,}\s*$/gm;
     let delimiter: RegExpMatchArray | null;
     while ((delimiter = delimiterRegex.exec(text))) {
@@ -245,7 +234,7 @@ function lookupConfigURLsInDomainLabels(domain: string, recordIds: number[], cur
             if (isFullyQualifiedDomainWildcard(wildcard) && fullyQualifiedDomainMatchesWildcard(wildcard, domain)) {
                 recordIds.push(recordId);
             } else {
-                // Skip this rule, since the label match must have come from a different URL
+                
             }
         }
     }
@@ -255,14 +244,14 @@ function lookupConfigURLs(domain: string, index: ConfigIndex, getAllRecordURLs: 
     const labels = domain.split('.');
     let recordIds: number[] = [];
 
-    // Common fix
+    
     if (index.domainLabels.hasOwnProperty('*')) {
         recordIds = recordIds.concat(index.domainLabels['*']);
     }
 
-    // Wildcard fixes
+    
     for (const label of labels) {
-        // We need to use in operator because ids are 0-based and 0 is falsy
+        
         if (index.domainLabels.hasOwnProperty(label)) {
             const currRecordIds = index.domainLabels[label];
             lookupConfigURLsInDomainLabels(domain, recordIds, currRecordIds, getAllRecordURLs);
@@ -280,8 +269,8 @@ function lookupConfigURLs(domain: string, index: ConfigIndex, getAllRecordURLs: 
         }
     }
 
-    // Backwards compatibility: check for nonssend over nonstandard patterns, which will be filtered out
-    // via regex in content script
+    
+    
     if (index.nonstandard) {
         for (const currRecordId of index.nonstandard) {
             const urls = getAllRecordURLs(currRecordId);
@@ -292,20 +281,13 @@ function lookupConfigURLs(domain: string, index: ConfigIndex, getAllRecordURLs: 
         }
     }
 
-    // Deduplicate array elements
+    
     recordIds = Array.from(new Set(recordIds));
 
     return recordIds;
 }
 
-/**
- * Extracts a single site fix and parses it (cached)
- * @param text the fix file
- * @param index site fix index
- * @param options fix parsing options
- * @param id numeric index of the fix
- * @returns a single fix
- */
+
 function getSiteFix<T extends SiteProps>(text: string, index: SitePropsIndex<T>, options: SitesFixesParserOptions<T>, id: number): Readonly<T> {
     if (index.cacheSiteFix.hasOwnProperty(id)) {
         return index.cacheSiteFix[id];
@@ -318,12 +300,7 @@ function getSiteFix<T extends SiteProps>(text: string, index: SitePropsIndex<T>,
     return fix;
 }
 
-/**
- * This function uses setTimeout instead of Alarms API so that background context can
- * go incative (resulting in cleanup of all context variables) and then not be awoken
- * by the alarm.
- * @param index
- */
+
 function scheduleCacheCleanup<T extends SiteProps>(index: SitePropsIndex<T>) {
     if (__TEST__) {
         return;
@@ -336,15 +313,7 @@ function scheduleCacheCleanup<T extends SiteProps>(index: SitePropsIndex<T>) {
     }, INDEX_CACHE_CLEANUP_INTERVAL_IN_MS);
 }
 
-/**
- * Given a URL, raw fixes, and an index, finds the applicable fixes.
- * Note that dependents assume that the first returned fix is a generic fix (has URL pattern '*').
- *
- * This method uses two levels of caching:
- *  - caching the site fixes keyed by a numeric id (to avoid re-parsing the site fixes)
- *  - caching the numeric ids keyed by domain (to avoid re-computing lists of site fixes for the same site,
- *    which is useful if user has multiple tabs of the same site and toggles Dark Reader on)
- */
+
 export function getSitesFixesFor<T extends SiteProps>(url: string, text: string, index: SitePropsIndex<T>, options: SitesFixesParserOptions<T>): Array<Readonly<T>> {
     const records: T[] = [];
     const domain = getDomain(url);

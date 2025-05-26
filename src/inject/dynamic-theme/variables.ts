@@ -1,12 +1,12 @@
-import type {Theme} from '../../definitions';
-import type {RGBA} from '../../utils/color';
-import {parseColorWithCache} from '../../utils/color';
-import {getParenthesesRange} from '../../utils/text';
+import type { Theme } from '../../definitions';
+import type { RGBA } from '../../utils/color';
+import { parseColorWithCache } from '../../utils/color';
+import { getParenthesesRange } from '../../utils/text';
 
-import {iterateCSSRules, iterateCSSDeclarations} from './css-rules';
-import {modifyBackgroundColor, modifyBorderColor, modifyForegroundColor} from './modify-colors';
-import {getBgImageModifier, getShadowModifierWithInfo} from './modify-css';
-import type {CSSValueModifier} from './modify-css';
+import { iterateCSSRules, iterateCSSDeclarations } from './css-rules';
+import { modifyBackgroundColor, modifyBorderColor, modifyForegroundColor } from './modify-colors';
+import { getBgImageModifier, getShadowModifierWithInfo } from './modify-css';
+import type { CSSValueModifier } from './modify-css';
 
 export interface ModifiedVarDeclaration {
     property: string;
@@ -139,7 +139,7 @@ export class VariablesStore {
         isCancelled: () => boolean;
     }): CSSVariableModifier {
         return (theme) => {
-            const {varName, sourceValue, rule, ignoredImgSelectors, isCancelled} = options;
+            const { varName, sourceValue, rule, ignoredImgSelectors, isCancelled } = options;
 
             const getDeclarations = () => {
                 const declarations: ModifiedVarDeclaration[] = [];
@@ -221,7 +221,7 @@ export class VariablesStore {
 
             return {
                 declarations: getDeclarations(),
-                onTypeChange: {addListener, removeListeners},
+                onTypeChange: { addListener, removeListeners },
             };
         };
     }
@@ -573,7 +573,7 @@ function getVariableRange(input: string, searchStart = 0): Range | null {
     if (start >= 0) {
         const range = getParenthesesRange(input, start + 3);
         if (range) {
-            return {start, end: range.end};
+            return { start, end: range.end };
         }
     }
     return null;
@@ -584,8 +584,8 @@ function getVariablesMatches(input: string): VariableMatch[] {
     let i = 0;
     let range: Range | null;
     while ((range = getVariableRange(input, i))) {
-        const {start, end} = range;
-        ranges.push({start, end, value: input.substring(start, end)});
+        const { start, end } = range;
+        ranges.push({ start, end, value: input.substring(start, end) });
         i = range.end + 1;
     }
     return ranges;
@@ -622,7 +622,7 @@ function getVariableNameAndFallback(match: string) {
         name = match.substring(4, match.length - 1).trim();
         fallback = '';
     }
-    return {name, fallback};
+    return { name, fallback };
 }
 
 export function replaceCSSVariablesNames(
@@ -632,7 +632,7 @@ export function replaceCSSVariablesNames(
     finalFallback?: string,
 ): string {
     const matchReplacer = (match: string) => {
-        const {name, fallback} = getVariableNameAndFallback(match);
+        const { name, fallback } = getVariableNameAndFallback(match);
         const newName = nameReplacer(name);
         if (!fallback) {
             if (finalFallback) {
@@ -687,9 +687,12 @@ function isVarDependant(value: string) {
 }
 
 function isConstructedColorVar(value: string) {
+    const rgbHslRegex = /^\s*(rgb|hsl)a?\(/;
+    const threeColorComponentsRegex = /^(((\d{1,3})|(var\([\-_A-Za-z0-9]+\))),?\s*?){3}$/;
+    
     return (
-        value.match(/^\s*(rgb|hsl)a?\(/) ||
-        value.match(/^(((\d{1,3})|(var\([\-_A-Za-z0-9]+\))),?\s*?){3}$/)
+        rgbHslRegex.exec(value) !== null ||
+        threeColorComponentsRegex.exec(value) !== null
     );
 }
 
@@ -708,12 +711,12 @@ function isTextColorProperty(property: string) {
 // [number] [number] [number]
 const rawRGBSpaceRegex = /^(\d{1,3})\s+(\d{1,3})\s+(\d{1,3})$/;
 // [number], [number], [number]
-const rawRGBCommaRegex = /^(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})$/;
+const rawRGBCommaRegex = /^(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3d})$/;
 
 function parseRawColorValue(input: string) {
     const match = rawRGBSpaceRegex.exec(input) ?? rawRGBCommaRegex.exec(input);
     if (match) {
-        const color = `rgb(${match[1]}, ${match[2]}, ${match[3]})`;
+        const color = `rgb(${match[1]},${match[2]},${match[3]})`;
         return {isRaw: true, color};
     }
     return {isRaw: false, color: input};
@@ -735,7 +738,7 @@ function handleRawColorValue(
             // This should technically never fail(returning an empty string),
             // but just to be safe, we will return outputColor.
             const outputInRGB = parseColorWithCache(outputColor);
-            return outputInRGB ? `${outputInRGB.r}, ${outputInRGB.g}, ${outputInRGB.b}` : outputColor;
+            return outputInRGB ? `${outputInRGB.r},${outputInRGB.g},${outputInRGB.b}` : outputColor;
         }
         return outputColor;
     }
@@ -764,15 +767,8 @@ function insertVarValues(source: string, varValues: Map<string, string>, fullSta
             return null;
         }
         stack.add(name);
-        const varValue = varValues.get(name) || fallback;
-        let inserted: string | null = null;
-        if (varValue) {
-            if (isVarDependant(varValue)) {
-                inserted = insertVarValues(varValue, varValues, stack);
-            } else {
-                inserted = varValue;
-            }
-        }
+        const varValue = varValues.get(name) ?? fallback;
+        const inserted: string | null = varValue ? (isVarDependant(varValue) ? insertVarValues(varValue, varValues, stack) : varValue) : null;
         if (!inserted) {
             containsUnresolvedVar = true;
             return null;

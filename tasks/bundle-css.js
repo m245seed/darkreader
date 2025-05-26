@@ -1,4 +1,4 @@
-// @ts-check
+
 import path from 'node:path';
 
 import less from 'less';
@@ -9,10 +9,10 @@ import * as reload from './reload.js';
 import {createTask} from './task.js';
 import {readFile, writeFile} from './utils.js';
 
-/** @typedef {import('chokidar').FSWatcher} FSWatcher */
-/** @typedef {import('./types').CSSEntry} CSSEntry */
 
-/** @type {CSSEntry[]} */
+
+
+
 const cssEntries = [
     {
         src: 'src/ui/devtools/style.less',
@@ -37,8 +37,8 @@ async function bundleCSSEntry(entry) {
     const srcDir = path.dirname(src);
 
     let input = await readFile(src);
-    const startToken = '/* @plus-start */';
-    const endToken = '/* @plus-end */';
+    const startToken = '';
+    const endToken = '';
     const startIndex = input.indexOf(startToken);
     const endIndex = input.indexOf(endToken, startIndex);
     if (startIndex >= 0 && endIndex >= 0) {
@@ -58,20 +58,14 @@ async function writeFiles(dest, platforms, debug, css) {
     }
 }
 
-/**
- * @param {CSSEntry} entry
- * @returns {string}
- */
+
 function getEntryFile(entry) {
     return absolutePath(entry.src);
 }
 
-/**
- * @param {CSSEntry[]} cssEntries
- * @returns {ReturnType<typeof createTask>}
- */
+
 export function createBundleCSSTask(cssEntries) {
-    /** @type {string[]} */
+    
     let currentWatchFiles;
 
     const getWatchFiles = () => {
@@ -99,7 +93,7 @@ export function createBundleCSSTask(cssEntries) {
         }
     };
 
-    /** @type {(changedFiles: string[], watcher: FSWatcher, platforms: any) => Promise<void>} */
+    
     const onChange = async (changedFiles, watcher, platforms) => {
         const entries = cssEntries.filter((entry) => {
             const entryFile = getEntryFile(entry);

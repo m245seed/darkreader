@@ -1,23 +1,20 @@
-// @ts-check
+
 import fs from 'node:fs/promises';
 
 import {readFile, writeFile, httpsRequest, timeout, log} from './utils.js';
 
-// To use this tool:
-// 1. Edit a line in en.config.
-// 2. Run `npm run translate-line 123` where 123 is a line number starting from 1.
-// 3. The line will be translated and written into other locales.
-// TODO: If necessary, new @id and empty lines should be copied as well.
-// TODO: Serbian translates into Cyrillic, but it is somehow possible to do Latin.
 
-/** @typedef {{locale: string; file: string; messages: Map<string, string>}} LocaleFile */
+
+
+
+
+
+
+
 
 const dir = 'src/_locales';
 
-/**
- * Translates `en` locale message for all locales
- * @param {string} messageId Message ID
- */
+
 async function translateEnMessage(messageId) {
     log(`Translating message ${messageId}`);
 
@@ -36,7 +33,7 @@ async function translateEnMessage(messageId) {
     for (const loc of otherLocales) {
         await timeout(1000);
 
-        /** @type {Map<string, string>} */
+        
         const result = new Map();
         const translated = await translate(message, loc.locale);
         log(`${loc.locale}: ${translated}`);
@@ -56,9 +53,7 @@ async function translateEnMessage(messageId) {
     log.ok('Translation done');
 }
 
-/**
- * Translates new `en` locale lines for all locales
- */
+
 async function translateNewEnMessages() {
     log('Translating new lines');
 
@@ -71,7 +66,7 @@ async function translateNewEnMessages() {
     }
 
     for (const loc of otherLocales) {
-        /** @type {Map<string, string>} */
+        
         const result = new Map();
         for (const id of enLocale.messages.keys()) {
             if (loc.messages.has(id)) {
@@ -92,12 +87,9 @@ async function translateNewEnMessages() {
     log.ok('Translation done');
 }
 
-/**
- * @param {string} content
- * @returns {Map<string, string>}
- */
+
 function parseLocale(content) {
-    /** @type {Map<string, string>} */
+    
     const messages = new Map();
     const lines = content.split('\n');
     let id = '';
@@ -106,7 +98,7 @@ function parseLocale(content) {
         if (line.startsWith('@')) {
             id = line.substring(1);
         } else if (line.startsWith('#')) {
-            // Ignore
+            
         } else if (messages.has(id)) {
             const message = messages.get(id);
             messages.set(id, `${message}\n${line}`);
@@ -120,12 +112,9 @@ function parseLocale(content) {
     return messages;
 }
 
-/**
- * @param {Map<string, string>} messages
- * @returns {string}
- */
+
 function stringifyLocale(messages) {
-    /** @type {string[]} */
+    
     const lines = [];
     messages.forEach((message, id) => {
         lines.push(`@${id}`);
@@ -143,13 +132,11 @@ function stringifyLocale(messages) {
     return lines.join('\n');
 }
 
-/**
- * @returns {Promise<LocaleFile[]>}
- */
+
 async function getAllLocales() {
     const fileList = await fs.readdir(dir);
 
-    /** @type {LocaleFile[]} */
+    
     const locales = [];
 
     for (const file of fileList) {
@@ -165,11 +152,7 @@ async function getAllLocales() {
     return locales;
 }
 
-/**
- * @param {string} text
- * @param {string} lang
- * @return {Promise<string>}
- */
+
 async function translate(text, lang) {
     const url = new URL('https://translate.googleapis.com/translate_a/single');
     url.search = (new URLSearchParams({

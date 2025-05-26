@@ -1,12 +1,12 @@
-// @ts-check
+
 import fs from 'node:fs';
 import os from 'node:os';
 
 import rollupPluginReplace from '@rollup/plugin-replace';
 import rollupPluginTypescript from '@rollup/plugin-typescript';
 import * as rollup from 'rollup';
-/** @type {any} */
-/** @type {any} */
+
+
 import typescript from 'typescript';
 
 
@@ -55,8 +55,8 @@ async function bundleAPIModule({debug, watch}, moduleType, dest) {
     });
     watchFiles = bundle.watchFiles;
     await bundle.write({
-        banner: `/**\n * Dark Reader v${await getVersion()}\n * https://darkreader.org/\n */\n`,
-        // TODO: Consider removing next line
+        banner: `\n`,
+        
         esModule: true,
         file: dest,
         strict: true,

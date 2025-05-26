@@ -1,11 +1,12 @@
-// @ts-check
+
 import {getDestDir} from './paths.js';
 import {PLATFORM} from './platform.js';
 import * as reload from './reload.js';
 import {createTask} from './task.js';
 import {writeFile} from './utils.js';
 
-/** @typedef {import('./types').HTMLEntry} HTMLEntry */
+
+
 
 /**
  * Generates an HTML string for an entry.
@@ -48,9 +49,10 @@ function html(platform, title, hasLoader, hasStyleSheet) {
     ].join('\r\n');
 }
 
-/** @type {HTMLEntry[]} */
+
 const htmlEntries = [
     {
+<<<<<<< Updated upstream
         reloadType: reload.FULL,
         title: 'Dark Reader background',
         hasLoader: false,
@@ -59,6 +61,17 @@ const htmlEntries = [
     },
     {
         platforms: [PLATFORM.CHROMIUM_MV3],
+=======
+        title: 'Dark Reader background',
+        path: 'background/index.html',
+        hasLoader: false,
+        hasStyleSheet: false,
+        reloadType: reload.FULL,
+        platforms: [PLATFORM.CHROMIUM_MV3],
+        hasCompatibilityCheck: false, 
+    },
+    {
+>>>>>>> Stashed changes
         title: 'Dark Reader settings',
         path: 'ui/popup/index.html',
         hasLoader: true,
@@ -92,22 +105,30 @@ const htmlEntries = [
     },
 ];
 
+<<<<<<< Updated upstream
 /**
  * Writes an HTML entry to the file system.
  * @param {HTMLEntry} entry
  * @param {{debug: boolean, platform: string}} options
  */
+=======
+
+>>>>>>> Stashed changes
 async function writeEntry({path, title, hasLoader, hasStyleSheet}, {debug, platform}) {
     const destDir = getDestDir({debug, platform});
     const d = `${destDir}/${path}`;
     await writeFile(d, html(platform, title, hasLoader, hasStyleSheet));
 }
 
+<<<<<<< Updated upstream
 /**
  * Creates the bundle-html task.
  * @param {HTMLEntry[]} htmlEntries
  * @returns {ReturnType<typeof createTask>}
  */
+=======
+
+>>>>>>> Stashed changes
 export function createBundleHTMLTask(htmlEntries) {
     const bundleHTML = async ({platforms, debug}) => {
         const promises = [];

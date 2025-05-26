@@ -1,4 +1,4 @@
-// @ts-check
+
 import process from 'node:process';
 
 import bundleAPI from './bundle-api.js';

@@ -1,4 +1,4 @@
-// @ts-check
+
 import {format} from 'prettier';
 
 import {getDestDir} from './paths.js';
@@ -6,7 +6,7 @@ import {PLATFORM} from './platform.js';
 import {createTask} from './task.js';
 import {readFile, writeFile, getPaths} from './utils.js';
 
-/** @type {import('prettier').Options} */
+
 const options = {
     arrowParens: 'always',
     bracketSpacing: false,
@@ -38,7 +38,7 @@ async function processAPIBuild() {
 
 async function processExtensionPlatform(platform) {
     const dir = getDestDir({debug: false, platform});
-    const files = await getPaths(extensions.map((ext) => `${dir}/**/*.${ext}`));
+    const files = await getPaths(extensions.map((ext) => `${dir}*.${ext}`));
     for (const file of files) {
         const code = await readFile(file);
         const formatted = await format(code, {
