@@ -24,7 +24,7 @@ function html(platform, title, hasLoader, hasStyleSheet) {
         ...(hasStyleSheet ? [
             '        <meta name="theme-color" content="#0B2228" />',
             '        <meta name="viewport" content="width=device-width, initial-scale=1" />',
-            '        <link rel="preconnect" href="https://darkreader.org" />',
+            '        <link rel="preconnect" href="https://darkreader.org" crossorigin />',
             '        <link rel="stylesheet" type="text/css" href="style.css" />',
             '        <link',
             '            rel="shortcut icon"',
