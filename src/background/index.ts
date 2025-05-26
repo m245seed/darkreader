@@ -4,6 +4,7 @@ import {getHelpURL, UNINSTALL_URL} from '../utils/links';
 import {emulateColorScheme, isSystemDarkModeEnabled} from '../utils/media-query';
 import {DebugMessageTypeBGtoCS, DebugMessageTypeBGtoUI, DebugMessageTypeCStoBG} from '../utils/message';
 import {isFirefox} from '../utils/platform';
+import {MANIFEST} from '../utils/manifest';
 
 import {Extension} from './extension';
 import {makeChromiumHappy} from './make-chromium-happy';
@@ -181,8 +182,7 @@ if (__TEST__) {
                     Extension.collectData().then(respond);
                     break;
                 case 'getManifest': {
-                    const data = chrome.runtime.getManifest();
-                    respond(data);
+                    respond(MANIFEST);
                     break;
                 }
                 case 'changeChromeStorage': {
@@ -265,7 +265,7 @@ function writeInstallationVersion(
         storage.set({installation: {
             date: Date.now(),
             reason: details.reason,
-            version: details.previousVersion ?? chrome.runtime.getManifest().version,
+            version: details.previousVersion ?? MANIFEST.version,
         }});
     });
 }
